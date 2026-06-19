@@ -8,9 +8,10 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-C8CSKlv.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Cormorant+Garamond:ital,wght@1,400;1,600;1,700&display=swap" rel="stylesheet">
 
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
@@ -33,6 +34,17 @@
     /* ═══════════════════════════════════════════════════════════════
        CSS-VARIABELEN
     ═══════════════════════════════════════════════════════════════ */
+
+    /* Anton fallback — matches Anton's metrics to eliminate layout shift */
+    @font-face {
+        font-family: 'Anton-fallback';
+        src: local('Arial Black'), local('Impact');
+        size-adjust: 110%;
+        ascent-override: 90%;
+        descent-override: 0%;
+        line-gap-override: 0%;
+    }
+
     :root {
         --bg:         #ffffff;
         --surface:    rgba(0,0,0,0.02);
@@ -43,7 +55,7 @@
         --txt-dim:    #767676;
         --accent:     #0e0d0c;
         --accent-dim: rgba(0,0,0,0.04);
-        --font-title: 'Anton',              sans-serif;
+        --font-title: 'Anton', 'Anton-fallback', sans-serif;
         --font-serif: 'Cormorant Garamond', Georgia, serif;
         --font-body:  'Plus Jakarta Sans',  sans-serif;
         /* 12-col grid */
@@ -271,7 +283,7 @@
         font-weight: 500;
         letter-spacing: .18em;
         text-transform: uppercase;
-        color: #888;
+        color: #6b6b6b;
         margin-bottom: 56px;
         /* FIX: was text-align:center, waardoor "001" gecentreerd stond
            terwijl 002 t/m 005 links uitgelijnd zijn binnen .container.
@@ -658,7 +670,7 @@
         font-weight: 500;
         letter-spacing: .18em;
         text-transform: uppercase;
-        color: #888;
+        color: #6b6b6b;
     }
     .over-mij-label-bar { padding: 60px 0 40px; }
     .over-mij-iframe { width: 100%; height: 100vh; border: none; display: block; }
@@ -676,7 +688,7 @@
         font-weight: 500;
         letter-spacing: .18em;
         text-transform: uppercase;
-        color: #888;
+        color: #6b6b6b;
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1105,7 +1117,7 @@
     .footer-copy {
         font-family: var(--font-body);
         font-size: 0.6rem; letter-spacing: 2px;
-        text-transform: uppercase; color: #888;
+        text-transform: uppercase; color: #6b6b6b;
     }
 
     .footer-credits {
@@ -1117,12 +1129,12 @@
     font-size: 0.56rem;
     font-weight: 500;
     letter-spacing: 0.06em;
-    color: rgba(0,0,0,0.38);
+    color: #6b6b6b;
     text-align: center;
     line-height: 1.6;
 }
 .footer-credits a {
-    color: rgba(0,0,0,0.5);
+    color: #6b6b6b;
     text-decoration: none;
     border-bottom: 1px solid rgba(0,0,0,0.18);
     padding-bottom: 1px;
