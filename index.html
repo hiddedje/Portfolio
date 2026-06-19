@@ -2042,11 +2042,16 @@ function smoothScrollToY(targetY, duration){
 })();
 
 /* ══════════════════════════════════════════════════════════
-   THREE.JS — DYNAMISCH GELADEN
-   Alle kubus-achtergrond- en projectcode staat hieronder.
-   import() zorgt dat three.module.js buiten de kritieke
-   network-dependency chain valt.
+   THREE.JS — KUBUS-ACHTERGROND
+   Lazy via IntersectionObserver: import() start pas als
+   #matrix-window de viewport nadert (rootMargin 300px).
+   Daardoor staat three.module.js buiten de kritieke
+   network-dependency chain.
 ══════════════════════════════════════════════════════════ */
+const _cubeEl = document.getElementById('matrix-window');
+const _cubeObs = new IntersectionObserver(function(entries) {
+    if (!entries[0].isIntersecting) return;
+    _cubeObs.disconnect();
 import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js').then(function(THREE) {
 
 /* ══════════════════════════════════════════════════════════
@@ -2776,6 +2781,8 @@ new IntersectionObserver((entries) => {
 }, { threshold: 0 }).observe(matrixWindow);
 
 }); // end import('three').then()
+}, { rootMargin: '300px' });
+if (_cubeEl) { _cubeObs.observe(_cubeEl); }
 
 // FIX (bug 5 — "verdwijnende secties" sinds livegang): GSAP ScrollTrigger
 // berekent de pin-posities (kernwaarden-stack, over-mij horizontale
@@ -4266,6 +4273,14 @@ function update3DStage(activeIndex){
         window.pause3DStages = function(){
             stageControllers.forEach(ctrl => { if (ctrl) ctrl.setActive(false); });
         };
+        // Race-condition fix: als openProjectDetails() al liep vóór het
+        // laden van THREE klaar was, is de actieve stage nooit gestart.
+        // Herstel dat hier door de actieve stage alsnog te initialiseren.
+        if (document.body.classList.contains('info-screen-active')) {
+            const _as = document.querySelector('.stage-instance.is-active');
+            const _ai = _as ? parseInt(_as.getAttribute('data-stage-index'), 10) : 0;
+            update3DStage(isNaN(_ai) ? 0 : _ai);
+        }
 
     }, { rootMargin: '400px' });
     _stageObs.observe(_stageSection);
