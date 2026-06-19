@@ -9,7 +9,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-C8CSKlv.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Cormorant+Garamond:ital,wght@1,400;1,600;1,700&display=swap" rel="stylesheet">
+    <!-- Non-render-blocking font load: media="print" trick -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Cormorant+Garamond:ital,wght@1,400;1,600;1,700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Cormorant+Garamond:ital,wght@1,400;1,600;1,700&display=swap" rel="stylesheet"></noscript>
+
+    <!-- Import map: laat THREE.js addons (GLTFLoader etc.) 'three' correct resolven -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
@@ -761,11 +773,12 @@
         font-family: var(--font-body);
         font-size: 1rem; font-weight: 700;
         margin-bottom: 20px; letter-spacing: 2.5px; text-transform: uppercase;
-        color: #0e0d0c; opacity: 0.3; cursor: pointer;
-        transition: color 0.3s ease, opacity 0.3s ease,
+        /* #767676 op wit = 4.54:1 contrast — voldoet aan WCAG AA (4.5:1) */
+        color: #767676; cursor: pointer;
+        transition: color 0.3s ease,
                     transform 0.8s cubic-bezier(0.16,1,0.3,1);
     }
-    #project-list li.active { opacity: 1 !important; transform: scale(1.06) translateX(4px) !important; }
+    #project-list li.active { color: #0e0d0c !important; transform: scale(1.06) translateX(4px) !important; }
 
     .close-fullscreen-btn {
         position: fixed; top: 36px; right: 36px;
@@ -2052,7 +2065,7 @@ const _cubeEl = document.getElementById('matrix-window');
 const _cubeObs = new IntersectionObserver(function(entries) {
     if (!entries[0].isIntersecting) return;
     _cubeObs.disconnect();
-import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js').then(function(THREE) {
+import('three').then(function(THREE) {
 
 /* ══════════════════════════════════════════════════════════
    CHANGE 2: INTRO TEXT — sentence-by-sentence slide-up on scroll
@@ -3162,9 +3175,9 @@ if (_stageSection) {
         if (!entries[0].isIntersecting) return;
         _stageObs.disconnect();
 
-        const THREE          = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-        const { GLTFLoader } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js');
-        const { RoomEnvironment } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js');
+        const THREE          = await import('three');
+        const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+        const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
 
 /* ── Gedeelde helpers ──────────────────────────────────────── */
 function damp(current, target, lambda, dt){ return current + (target-current)*(1-Math.exp(-lambda*dt)); }
@@ -3197,7 +3210,7 @@ function isNarrowContainer(container){ return container.clientWidth < 480; }
 ════════════════════════════════════════════════════════════ */
 function initMacbookStage(canvas, container, loadingEl, barEl){
     const CFG = {
-        MODEL_PATH: 'Macbook.glb',
+        MODEL_PATH: '/Macbook.glb',
         PHOTOS: ['Images/VCShome.png', 'Images/VCSprogramma.png', 'Images/VCSteam.png'],
         FLIP_SCREEN_TEXTURE_V: true,
         SCALE: 0.5, CAM_FOV: 40, CAM_DIST_MULT: 0.74,
@@ -3536,7 +3549,7 @@ function initMacbookStage(canvas, container, loadingEl, barEl){
 function initIphoneStage(canvas, container, loadingEl, barEl){
     const CFG = {
         itemCount: 3,
-        modelPath: 'Iphone17.glb',
+        modelPath: '/Iphone17.glb',
         photoPaths: ['Images/Greenup1.png', 'Images/Greenup2.png', 'Images/Greenup3.png'],
         contentMaterialName: 'OLED',
         contentMaterialFallbackRegex: /oled|screen|display|lcd|page|cover/i,
@@ -3887,7 +3900,7 @@ function initIphoneStage(canvas, container, loadingEl, barEl){
 ════════════════════════════════════════════════════════════ */
 function initMagazineStage(canvas, container, loadingEl, barEl){
     const CFG = {
-        MODEL_PATH: 'open_book.glb',
+        MODEL_PATH: '/open_book.glb',
         PHOTO_PATHS: ['Images/foto1.png', 'Images/foto2.png'],
         FLIP_SCREEN_TEXTURE_V: true,
         SCALE: 1.0, CAM_FOV: 40, CAM_DIST_MULT: 0.7,
