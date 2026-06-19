@@ -1,0 +1,4244 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio — Hidde Vermaas</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Cormorant+Garamond:ital,wght@1,400;1,600;1,700&display=swap" rel="stylesheet">
+
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+
+    <!-- ── 3D PROJECT-SHOWCASES (Macbook / iPhone / Magazine) ──────────
+         Losse, modern ES-module build van Three.js (r160) + addons.
+         Draait naast de bestaande globale r128-build (voor de
+         achtergrond-kubus-matrix) zonder conflicten, omdat modules
+         hun eigen geïsoleerde scope hebben. GSAP wordt hergebruikt
+         van de globale instantie hierboven (geen dubbele load). ── -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+
+    <style>
+
+    /* ═══════════════════════════════════════════════════════════════
+       CSS-VARIABELEN
+    ═══════════════════════════════════════════════════════════════ */
+    :root {
+        --bg:         #ffffff;
+        --surface:    rgba(0,0,0,0.02);
+        --border:     rgba(0,0,0,0.10);
+        --border-mid: rgba(0,0,0,0.22);
+        --txt:        #1a1a1a;
+        --txt-muted:  #888888;
+        --txt-dim:    #aaaaaa;
+        --accent:     #0e0d0c;
+        --accent-dim: rgba(0,0,0,0.04);
+        --font-title: 'Anton',              sans-serif;
+        --font-serif: 'Cormorant Garamond', Georgia, serif;
+        --font-body:  'Plus Jakarta Sans',  sans-serif;
+        /* 12-col grid */
+        --grid-gap: clamp(14px, 1.8vw, 22px);
+        --grid-margin: 52px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       12-COLUMN GRID SYSTEM
+    ═══════════════════════════════════════════════════════════════ */
+    .g-row {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        column-gap: var(--grid-gap);
+        align-items: start;
+    }
+    .g-col-1  { grid-column: span 1; }
+    .g-col-2  { grid-column: span 2; }
+    .g-col-3  { grid-column: span 3; }
+    .g-col-4  { grid-column: span 4; }
+    .g-col-5  { grid-column: span 5; }
+    .g-col-6  { grid-column: span 6; }
+    .g-col-7  { grid-column: span 7; }
+    .g-col-8  { grid-column: span 8; }
+    .g-col-9  { grid-column: span 9; }
+    .g-col-10 { grid-column: span 10; }
+    .g-col-11 { grid-column: span 11; }
+    .g-col-12 { grid-column: span 12; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       GLOBAL RESET & BASE
+    ═══════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #000;
+        background-color: #fff;
+        overflow-x: hidden;
+        /* Promote scrolling to its own compositor layer */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Universal container */
+    .container,
+    .kernwaarden-section {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-inline: var(--grid-margin);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SITE HEADER
+    ═══════════════════════════════════════════════════════════════ */
+    .site-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 200;
+        padding: 28px 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        background: rgba(255,255,255,0);
+        transition: background .4s ease, backdrop-filter .4s ease, opacity .3s ease;
+    }
+    .site-header.scrolled {
+        background: rgba(255,255,255,.88);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+    body.info-screen-active .site-header {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .header-year {
+        position: absolute;
+        right: 40px;
+        font-size: 11px;
+        color: #aaa;
+        cursor: pointer;
+        opacity: 0.55;
+    }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+        color: #000;
+        text-decoration: none;
+        font-size: 12px;
+        transition: opacity .3s ease;
+    }
+    .nav-links a:hover { opacity: 0.55; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════════════════════ */
+    .hero-screen {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+    .held { display: flex; justify-content: center; }
+    .held-h1-omhulsel { position: relative; display: inline-block; contain: layout; }
+
+    .held-h1 {
+        position: relative;
+        z-index: 1;
+        font-size: clamp(5rem, 12vw, 12rem);
+        line-height: 1.0;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        margin: 0;
+        color: #000000 !important;
+        opacity: 1 !important;
+        filter: none !important;
+        mix-blend-mode: normal !important;
+        -webkit-text-fill-color: #000000;
+        cursor: default;
+    }
+
+    .hero-meta {
+        position: absolute;
+        bottom: 40px;
+        left: var(--grid-margin);
+        right: var(--grid-margin);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #888;
+    }
+    .hero-role-tag {
+        margin-top: 18px;
+        font-family: var(--font-body);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.20em;
+        text-transform: uppercase;
+        color: #bbb;
+        text-align: center;
+    }
+    .hero-scroll-hint {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .scroll-arrow {
+        width: 11px; height: 11px;
+        color: #888;
+        animation: scrollHintBounce 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollHintBounce {
+        0%, 100% { transform: translateY(0); opacity: 0.55; }
+        50%      { transform: translateY(4px); opacity: 1; }
+    }
+
+    /* Hero line-by-line slide-reveal */
+    .held-h1 {
+        font-family: var(--font-title);
+        text-transform: uppercase;
+    }
+    .hl-wrap {
+        display: block;
+        overflow: hidden;
+        padding-bottom: 0.06em;
+        margin-bottom: -0.06em;
+    }
+    .hl-inner {
+        display: block;
+        transform: translateY(105%);
+        animation: hlSlideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+        animation-delay: calc(var(--li, 0) * 140ms + 80ms);
+    }
+    @keyframes hlSlideUp {
+        to { transform: translateY(0); }
+    }
+    .hl-inner em {
+        font-style: italic;
+        font-family: var(--font-serif);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    /* Non-split italic in other headings */
+    .kw-title em,
+    .kernwaarden-subtitle em {
+        font-style: italic;
+        font-family: var(--font-serif);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       001 INTRODUCTIE — OVERHAULED
+    ═══════════════════════════════════════════════════════════════ */
+    #intro-section {
+        padding-top: 160px;
+        padding-bottom: 160px;
+    }
+    .intro-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .intro-label,
+    .kernwaarden-label,
+    .over-mij-label,
+    .gw-label {
+        width: 100%; display: block; padding-left: 0; margin-left: 0;
+    }
+
+    .intro-label {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 56px;
+        /* FIX: was text-align:center, waardoor "001" gecentreerd stond
+           terwijl 002 t/m 005 links uitgelijnd zijn binnen .container.
+           Links uitlijnen zodat alle nummers op één lijn staan. */
+        text-align: left;
+    }
+
+    /* Centered text wrap */
+    .intro-text-wrap {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* ── Sentence-by-sentence slide-up animation ──────────── */
+    .intro-sentences {
+        max-width: 860px;
+        text-align: center;
+    }
+    /* Each sentence sits in an overflow:hidden clip — text slides up from below */
+    .intro-line-wrap {
+        overflow: hidden;
+        /* Extra padding so descenders aren't clipped on the reveal */
+        padding-bottom: 0.1em;
+        margin-bottom: -0.05em;
+        /* Add a little breathing room between sentences */
+        margin-top: 0.18em;
+    }
+    .intro-line-wrap:first-child { margin-top: 0; }
+    .intro-line-inner {
+        display: block;
+        font-size: clamp(24px, 3.2vw, 46px);
+        line-height: 1.38;
+        font-weight: 600;
+        color: #1a1a1a;
+        text-align: center;
+        letter-spacing: -0.01em;
+        /* Start below — will slide up */
+        transform: translateY(115%);
+        transition: transform 1.05s cubic-bezier(0.16,1,0.3,1);
+        transition-delay: calc(var(--si, 0) * 240ms + 60ms);
+    }
+    .intro-sentences.intro-visible .intro-line-inner {
+        transform: translateY(0);
+    }
+
+    /* ── COMPETENCE TIMELINE ──────────────────────────────────── */
+    .competence-timeline {
+        width: 100%;
+        max-width: 940px;
+        margin: 96px auto 0;
+        position: relative;
+        padding: 0 10px;
+    }
+    .timeline-track {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        position: relative;
+    }
+    /* Faint background rail */
+    .timeline-track::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0; right: 0;
+        height: 1px;
+        background: rgba(0,0,0,0.10);
+        z-index: 0;
+    }
+    /* Animated fill line — grows left to right */
+    .timeline-line-fill {
+        position: absolute;
+        top: 15px;
+        left: 0;
+        height: 1px;
+        width: 0%;
+        background: linear-gradient(to right, #0e0d0c 60%, rgba(14,13,12,0.25));
+        z-index: 1;
+        transition: width 1.5s cubic-bezier(0.16,1,0.3,1) 0.15s;
+    }
+    .competence-timeline.timeline-active .timeline-line-fill {
+        width: 100%;
+    }
+
+    /* Individual step — initial invisible state */
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        cursor: default;
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+            opacity 0.55s ease,
+            transform 0.6s cubic-bezier(0.16,1,0.3,1);
+        transition-delay: calc(var(--step-i, 0) * 140ms + 300ms);
+    }
+    /* When timeline activates — muted steps (Idee only now) */
+    .competence-timeline.timeline-active .timeline-step {
+        opacity: 0.30;
+        transform: translateY(0);
+    }
+    /* Strong / skill-highlight steps — full black (Ontwerpen, Testen, Coderen) */
+    .competence-timeline.timeline-active .timeline-step.tl-strong {
+        opacity: 1;
+    }
+    /* Mid — gray, "a little bit" (Doelgroeponderzoek) */
+    .competence-timeline.timeline-active .timeline-step.tl-mid {
+        opacity: 0.65;
+    }
+    /* Green — positive outcome (Gebruikerservaring) */
+    .competence-timeline.timeline-active .timeline-step.tl-green {
+        opacity: 1;
+    }
+
+    .timeline-node {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(0,0,0,0.22);
+        background: #fff;
+        margin-bottom: 14px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+    /* Black node — tl-strong */
+    .timeline-step.tl-strong .timeline-node {
+        width: 16px;
+        height: 16px;
+        background: #0e0d0c;
+        border-color: #0e0d0c;
+        box-shadow: 0 0 0 4px rgba(14,13,12,0.07), 0 0 16px rgba(14,13,12,0.14);
+    }
+    /* Gray node — tl-mid */
+    .timeline-step.tl-mid .timeline-node {
+        width: 14px;
+        height: 14px;
+        background: #aaa;
+        border-color: #aaa;
+        box-shadow: none;
+    }
+    /* Outcome node — tl-green (monochroom: wit met zwarte ring) */
+    .timeline-step.tl-green .timeline-node {
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border: 2.5px solid #0e0d0c;
+        box-shadow: 0 0 0 4px rgba(14,13,12,0.07);
+    }
+    .timeline-label {
+        font-family: var(--font-body);
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        color: #888;
+        white-space: nowrap;
+        text-align: center;
+    }
+    /* Black label — tl-strong */
+    .timeline-step.tl-strong .timeline-label {
+        font-size: 10.5px;
+        font-weight: 800;
+        color: #0e0d0c;
+        letter-spacing: 0.08em;
+    }
+    /* Gray label — tl-mid */
+    .timeline-step.tl-mid .timeline-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #999;
+    }
+    /* Outcome label — tl-green */
+    .timeline-step.tl-green .timeline-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #0e0d0c;
+    }
+    /* Subtle strength badge on strong/green nodes */
+    .timeline-step.tl-strong .timeline-badge,
+    .timeline-step.tl-green .timeline-badge {
+        display: block;
+        margin-top: 7px;
+        font-family: var(--font-body);
+        font-size: 7.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.5;
+    }
+    .timeline-step.tl-strong .timeline-badge { color: #0e0d0c; }
+    .timeline-step.tl-green  .timeline-badge { color: #0e0d0c; }
+    .timeline-step .timeline-badge { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       002 KERNWAARDEN — PINNED CARD STACK
+    ═══════════════════════════════════════════════════════════════ */
+    #kernwaarden-scroll {
+        position: relative;
+    }
+
+    #kw-sticky {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .kw-section-label {
+        position: absolute;
+        top: 60px;
+        /* FIX: #kw-sticky is 100vw, dus left:var(--grid-margin) hing vast
+           aan de viewport-rand. De andere labels (001/003/004) zitten in
+           .container (max-width:1100px, gecentreerd), waardoor "002" op
+           brede schermen niet meer op één lijn stond met de rest. Dit
+           berekent dezelfde linker contentrand als .container. */
+        left: max(var(--grid-margin), calc((100vw - 1100px) / 2 + var(--grid-margin)));
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #888;
+        z-index: 3;
+    }
+
+    .kw-intro-text {
+        grid-area: 1 / 1 / 2 / 2;
+        font-family: var(--font-title);
+        font-size: 5.5vw;
+        text-transform: uppercase;
+        line-height: 0.95;
+        text-align: center;
+        letter-spacing: -2px;
+        z-index: 2;
+        pointer-events: none;
+        width: 95%;
+        max-width: 1400px;
+        color: #0e0d0c;
+        opacity: 0;
+    }
+    .kw-scroll-hint {
+        margin-top: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--font-body);
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #999;
+        pointer-events: auto;
+        cursor: pointer;
+    }
+    .kw-scroll-hint .scroll-arrow {
+        width: 11px; height: 11px;
+        color: #999;
+        animation: scrollHintBounce 1.8s ease-in-out infinite;
+    }
+
+    .kw-cards-stack {
+        grid-area: 1 / 1 / 2 / 2;
+        position: relative;
+        width: 390px;
+        height: 580px;
+        z-index: 5;
+        perspective: 1500px;
+    }
+
+    .kw-card {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: #ffffff;
+        border: 1px solid rgba(14, 13, 12, 0.08);
+        border-radius: 24px;
+        padding: 45px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.09);
+        transform-style: preserve-3d;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .kw-card:nth-child(1) { z-index: 4; }
+    .kw-card:nth-child(2) { z-index: 3; }
+    .kw-card:nth-child(3) { z-index: 2; }
+    .kw-card:nth-child(4) { z-index: 1; }
+
+    .kw-card-title {
+        font-family: var(--font-title);
+        font-size: 3.3rem;
+        text-transform: uppercase;
+        line-height: 1.05;
+        margin-bottom: 18px;
+        color: #0e0d0c;
+        text-align: center;
+        position: relative;
+        z-index: 3;
+    }
+
+    .kw-card-description {
+        font-size: 0.88rem;
+        line-height: 1.6;
+        color: rgba(14, 13, 12, 0.75);
+        text-align: center;
+        position: relative;
+        z-index: 3;
+        width: 100%;
+    }
+
+    .kw-smoke-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        border-radius: 24px;
+        opacity: 0;
+        mix-blend-mode: multiply;
+    }
+
+    @media (max-width: 500px) {
+        .kw-cards-stack { width: 85vw; height: 68vh; }
+        .kw-intro-text { font-size: 10vw; line-height: 1; }
+        .kw-card-title { font-size: 2.5rem; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SKILL-CHIPS — hergebruikt in de Over-mij gereedschapskist-kaart
+    ═══════════════════════════════════════════════════════════════ */
+    .skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        border: 1.5px solid #000;
+        border-radius: 40px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: #000;
+        background: #fff;
+        cursor: default;
+        transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease;
+    }
+    .skill-chip:hover {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+    }
+    .chip-dot {
+        display: inline-block;
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #000;
+        flex-shrink: 0;
+        transition: background 0.22s ease;
+    }
+    .skill-chip:hover .chip-dot { background: #fff; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       005 OVER MIJ — iframe wrapper
+    ═══════════════════════════════════════════════════════════════ */
+    .over-mij-iframe-section { border-top: 1px solid rgba(0,0,0,.07); }
+    .over-mij-label {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #888;
+    }
+    .over-mij-label-bar { padding: 60px 0 40px; }
+    .over-mij-iframe { width: 100%; height: 100vh; border: none; display: block; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       003 PROJECTEN — LABEL BALK
+    ═══════════════════════════════════════════════════════════════ */
+    .projecten-label-balk {
+        background: #ffffff;
+        padding: 60px 0 56px;
+        border-top: 1px solid rgba(0,0,0,.07);
+    }
+    .projecten-label-balk .section-num {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #888;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PROJECTEN — PAGE WRAPPER / HERO MATRIX
+    ═══════════════════════════════════════════════════════════════ */
+    .branding-header { display: none !important; }
+    .page-wrapper { position: relative; width: 100vw; background: transparent; }
+
+    .hero-matrix-section {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #ffffff;
+        z-index: 10;
+        will-change: background-color;
+        transition: background-color 1.6s cubic-bezier(0.16,1,0.3,1),
+                    opacity 0.9s cubic-bezier(0.16,1,0.3,1);
+    }
+    body.info-screen-active .hero-matrix-section {
+        position: absolute; top: 0; left: 0;
+        opacity: 1; pointer-events: none; z-index: 1;
+        background: #ffffff;
+    }
+
+    .matrix-layout-anchor {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        background: transparent;
+        display: flex; justify-content: center; align-items: center;
+        z-index: 1;
+    }
+
+    /* Matrix window — paginavullend wit vlak met de 3D-kubus, geen kader */
+    .matrix-window {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        z-index: 10; background: #ffffff;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .discover-project-btn {
+        position: absolute; bottom: 56px; left: 50%;
+        transform: translate(-50%, 18px);
+        background: #0e0d0c;
+        border: 1px solid #0e0d0c; color: #fff;
+        padding: 14px 36px;
+        font-family: var(--font-body);
+        font-size: 0.68rem; font-weight: 500;
+        text-transform: uppercase; letter-spacing: 3px;
+        border-radius: 40px; cursor: pointer;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1),
+                    background 0.3s ease, color 0.3s ease;
+        z-index: 50;
+    }
+    /* Show button on hover of the window */
+    .matrix-window:hover .discover-project-btn {
+        opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
+    }
+    .discover-project-btn:hover { background: #ffffff; color: #0e0d0c; }
+    body.info-screen-active .discover-project-btn {
+        opacity: 0 !important; pointer-events: none !important;
+        transform: translate(-50%, 24px) !important;
+    }
+
+    #threejs-container {
+        position: absolute; top:0; left:0; width:100%; height:100%; z-index:0;
+    }
+    #threejs-container canvas { display:block !important; width:100% !important; height:100% !important; }
+
+    #project-list {
+        position: absolute; bottom: 56px; left: var(--grid-margin);
+        text-align: left; z-index: 12;
+        transition: all 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    body.info-screen-active #project-list { opacity: 0; pointer-events: none; transform: translateX(-22px); }
+    #project-list ul { list-style: none; padding: 0; margin: 0; }
+    #project-list li {
+        font-family: var(--font-body);
+        font-size: 1rem; font-weight: 700;
+        margin-bottom: 20px; letter-spacing: 2.5px; text-transform: uppercase;
+        color: #0e0d0c; opacity: 0.3; cursor: pointer;
+        transition: color 0.3s ease, opacity 0.3s ease,
+                    transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    #project-list li.active { opacity: 1 !important; transform: scale(1.06) translateX(4px) !important; }
+
+    .close-fullscreen-btn {
+        position: fixed; top: 36px; right: 36px;
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.25);
+        color: #0e0d0c;
+        padding: 10px 24px; border-radius: 24px;
+        font-family: var(--font-body);
+        font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px;
+        cursor: pointer; z-index: 210;
+        opacity: 0; visibility: hidden; transform: translateY(-10px);
+        transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    /* Close button visible on the project detail page */
+    body.info-screen-active .close-fullscreen-btn {
+        opacity: 1; visibility: visible; transform: translateY(0);
+    }
+    .close-fullscreen-btn:hover {
+        background: #0e0d0c;
+        border-color: #0e0d0c;
+        color: #fff;
+    }
+
+    .info-title-bar {
+        position: fixed; top: 0; left: 0;
+        z-index: 205; padding: 30px 40px;
+        display: flex; align-items: center; gap: 14px;
+        pointer-events: none; opacity: 0;
+        transition: opacity 0.5s ease 0.4s;
+    }
+    body.info-screen-active .info-title-bar { opacity: 1; }
+    .info-title-number {
+        font-family: var(--font-body);
+        font-size: 0.6rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+        color: var(--accent);
+    }
+    .info-title-sep { width: 22px; height: 1px; background: rgba(0,0,0,0.2); }
+    .info-title-name {
+        font-family: var(--font-body);
+        font-size: 0.6rem; font-weight: 500; letter-spacing: 3px;
+        color: rgba(0,0,0,0.45); text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PROJECT DETAILS OVERLAY
+    ═══════════════════════════════════════════════════════════════ */
+    .project-details-section {
+        position: relative;
+        width: 100vw;
+        background: #ffffff;
+        z-index: 20;
+        padding-bottom: 160px;
+        display: none;
+    }
+    body.text-reveal-active .project-details-section,
+    body.info-screen-active .project-details-section {
+        display: block;
+        animation: fadeInProjectDetails 0.6s ease forwards;
+    }
+    @keyframes fadeInProjectDetails {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+    body.info-screen-active .project-details-section {
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100% !important; height: 100vh !important;
+        overflow-y: auto !important;
+        z-index: 15 !important;
+    }
+    .project-hero-block {
+        position: relative; padding: 130px 8% 60px; overflow: hidden;
+    }
+    .ghost-title {
+        position: absolute;
+        font-family: var(--font-title);
+        font-size: clamp(7rem, 22vw, 22rem);
+        font-weight: 800; color: transparent;
+        -webkit-text-stroke: 1px rgba(0,0,0,0.06);
+        top: 50px; left: -1%; line-height: 1;
+        text-transform: uppercase; letter-spacing: 0.01em;
+        pointer-events: none; user-select: none;
+        white-space: nowrap; z-index: 0;
+    }
+    .project-hero-eyebrow {
+        font-family: var(--font-body);
+        font-size: 0.6rem; letter-spacing: 4px; text-transform: uppercase;
+        color: var(--accent); margin-bottom: 18px;
+        display: flex; align-items: center; gap: 14px;
+        position: relative; z-index: 1;
+    }
+    .project-hero-eyebrow::before {
+        content: ''; display: block;
+        width: 24px; height: 1px; background: var(--accent);
+    }
+    .project-hero-title {
+        font-family: var(--font-title);
+        font-size: clamp(4.5rem, 13vw, 12rem);
+        font-weight: 400; color: #0e0d0c;
+        margin: 0; line-height: 0.88;
+        letter-spacing: 0.01em; text-transform: uppercase;
+        position: relative; z-index: 1;
+    }
+    .title-word-wrapper {
+        display: inline-block; overflow: hidden;
+        vertical-align: bottom; line-height: 1.05;
+    }
+    .title-word-inner { display: inline-block; transform: translateY(115%); }
+    @keyframes wordSlideUp { to { transform: translateY(0%); } }
+    body.text-reveal-active .title-word-inner {
+        animation: wordSlideUp 1.1s cubic-bezier(0.16,1,0.3,1) forwards;
+        animation-delay: calc(var(--wi, 0) * 110ms + 80ms);
+    }
+    .project-hero-subtitle {
+        font-family: var(--font-body);
+        font-size: 1.05rem; font-weight: 400;
+        color: rgba(0,0,0,0.5);
+        margin-top: 22px; letter-spacing: 0;
+        position: relative; z-index: 1;
+        opacity: 0; transform: translateY(14px);
+    }
+    @keyframes paraReveal { to { opacity: 1; filter: blur(0px); transform: translateY(0); } }
+    body.text-reveal-active .project-hero-subtitle {
+        animation: paraReveal 1s cubic-bezier(0.16,1,0.3,1) forwards;
+        animation-delay: 0.45s;
+    }
+    .asymmetric-container {
+        position: relative; z-index: 2;
+        max-width: 1400px; margin: 0 auto;
+        padding: 0 8%; box-sizing: border-box;
+    }
+    .meta-strip {
+        display: grid; grid-template-columns: repeat(4,1fr);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 80px;
+    }
+    .meta-item { padding: 26px 0; border-right: 1px solid var(--border); }
+    .meta-item:last-child { border-right: none; }
+    .meta-item:not(:first-child) { padding-left: 28px; }
+    .meta-label {
+        font-family: var(--font-body);
+        font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase;
+        color: var(--txt-muted); display: block; margin-bottom: 7px;
+    }
+    .meta-value { font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; color: #0e0d0c; letter-spacing: 0.3px; }
+    .intro-row { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-bottom: 90px; align-items: start; }
+    .case-intro-text { font-family: var(--font-body); font-size: 1.1rem; line-height: 1.8; font-weight: 400; color: var(--txt); margin: 0; opacity: 0; filter: blur(6px); transform: translateY(18px); }
+    .case-side-col { display: flex; flex-direction: column; gap: 32px; }
+    .case-side-text { font-family: var(--font-body); font-size: 0.95rem; line-height: 1.75; font-weight: 400; color: #555; margin: 0; opacity: 0; filter: blur(6px); transform: translateY(18px); }
+    body.text-reveal-active .case-intro-text { animation: paraReveal 1.2s cubic-bezier(0.16,1,0.3,1) forwards; animation-delay: 0.55s; }
+    body.text-reveal-active .case-side-text  { animation: paraReveal 1.2s cubic-bezier(0.16,1,0.3,1) forwards; animation-delay: 0.7s; }
+    .tags-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { font-family: var(--font-body); font-size: 0.58rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #0e0d0c; border: 1px solid rgba(0,0,0,0.6); background: #fff; padding: 6px 14px; border-radius: 24px; transition: background 0.3s ease, color 0.3s ease; }
+    .tag:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    /* ── 3D PROJECT-STAGE — vervangt de oude foto-placeholders ──────
+       Eén grid-brede, responsive "vitrine" per project-sectie waarin
+       het bijbehorende 3D-model (Macbook / iPhone / Magazine) drijft,
+       tuimelt en reageert op hover & drag — zelfde grid-ritme als
+       de rest van de case-study, maar speels en levend. ── */
+    .project-3d-stage {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 8;
+        margin-bottom: 20px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--border);
+    }
+    .stage-instance {
+        position: absolute; inset: 0;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .stage-instance.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    .stage-instance canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: pointer;
+    }
+    .stage-instance canvas.is-grabbing { cursor: grabbing; }
+    .stage-loading {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 12px;
+        background: var(--surface);
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        font-family: var(--font-body);
+        z-index: 2;
+    }
+    .stage-loading.out { opacity: 0; visibility: hidden; }
+    .stage-loading span { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--txt-muted); }
+    .stage-bar-wrap { width: 140px; height: 2px; background: rgba(0,0,0,0.08); border-radius: 2px; overflow: hidden; }
+    .stage-bar { height: 100%; width: 0%; background: var(--accent); border-radius: 2px; transition: width 0.25s ease, background 0.4s ease; }
+    .photo-row-2 { display: flex; justify-content: center; margin-bottom: 100px; }
+    .photo-row-2 .case-side-text {
+        max-width: 640px;
+        text-align: center;
+        font-size: 1.02rem;
+        position: relative;
+        padding-top: 30px;
+    }
+    .photo-row-2 .case-side-text::before {
+        content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 46px; height: 2px; background: var(--accent);
+    }
+    .process-section { margin-bottom: 90px; }
+    .section-label { font-family: var(--font-body); font-size: 0.58rem; letter-spacing: 4px; text-transform: uppercase; color: var(--txt-muted); margin-bottom: 36px; display: flex; align-items: center; gap: 16px; }
+    .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .process-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .process-step { padding: 32px 28px; border: 1px solid var(--border); background: #fff; transition: background 0.4s ease, border-color 0.4s ease; }
+    .process-step:hover { background: rgba(0,0,0,0.025); border-color: var(--border-mid); }
+    .step-number { font-family: var(--font-body); font-weight: 700; font-size: 0.58rem; letter-spacing: 3px; color: var(--accent); margin-bottom: 18px; display: block; }
+    .step-title { font-family: var(--font-title); font-size: 1.05rem; font-weight: 400; color: #0e0d0c; margin: 0 0 10px; letter-spacing: 0.02em; text-transform: uppercase; }
+    .step-body { font-family: var(--font-body); font-size: 0.9rem; line-height: 1.72; color: #555; margin: 0; font-weight: 400; }
+    .code-block-section { margin-bottom: 90px; }
+    .code-block { background: #fafafa; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 20px; border-bottom: 1px solid var(--border); background: #fff; }
+    .code-dots { display: flex; gap: 6px; }
+    .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .code-dot-r { background: #c9c9c9; }
+    .code-dot-y { background: #dcdcdc; }
+    .code-dot-g { background: #efefef; border: 1px solid #ddd; }
+    .code-filename { font-family: var(--font-body); font-weight: 600; font-size: 0.62rem; color: var(--txt-muted); letter-spacing: 1px; }
+    .code-body { padding: 26px 28px; overflow-x: auto; }
+    .code-body pre { margin: 0; font-family: ui-monospace, 'Courier New', monospace; font-size: 0.78rem; line-height: 1.9; white-space: pre; color: #1a1a1a; }
+    .tok-comment  { color: #9a9a9a; }
+    .tok-selector { color: #0e0d0c; font-weight: 700; }
+    .tok-prop     { color: #555555; }
+    .tok-value    { color: #1a1a1a; }
+    .tok-punc     { color: #999999; }
+    .pull-quote { border-left: 3px solid var(--accent); padding: 30px 44px 30px 36px; margin-bottom: 90px; background: rgba(0,0,0,0.025); border-radius: 0 10px 10px 0; }
+    .pull-quote blockquote { margin: 0; font-family: var(--font-serif); font-style: italic; font-size: 1.55rem; line-height: 1.5; color: #1a1a1a; font-weight: 600; }
+    .pull-quote cite { display: block; margin-top: 14px; font-family: var(--font-body); font-weight: 600; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--txt-muted); font-style: normal; }
+    .next-project-trigger { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 60px; margin-top: 90px; cursor: pointer; transition: border-color 0.3s ease; }
+    .next-project-trigger:hover { border-color: var(--border-mid); }
+    .next-left { display: flex; flex-direction: column; gap: 8px; }
+    .next-sup { font-family: var(--font-body); font-weight: 600; font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--txt-muted); }
+    .next-project-label { font-family: var(--font-title); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 400; color: #0e0d0c; letter-spacing: 0.01em; text-transform: uppercase; transition: opacity 0.3s ease; }
+    .next-project-trigger:hover .next-project-label { opacity: 0.55; }
+    .next-arrow { width: 56px; height: 56px; border: 1px solid rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0e0d0c; font-size: 1.2rem; transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1); font-family: var(--font-body); font-style: normal; }
+    .next-project-trigger:hover .next-arrow { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateX(6px); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PROJECT SIDEBAR NAVIGATION — bare left-edge links
+    ═══════════════════════════════════════════════════════════════ */
+    .project-sidebar-nav {
+        position: fixed;
+        left: 28px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1);
+        /* No glass panel — plain edge */
+    }
+    body.info-screen-active .project-sidebar-nav {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .sidebar-nav-item {
+        display: block;
+        text-align: left;
+        white-space: nowrap;
+        text-decoration: none;
+        color: rgba(0,0,0,0.35);
+        font-family: var(--font-body);
+        font-size: 0.57rem;
+        font-weight: 600;
+        letter-spacing: 2.2px;
+        text-transform: uppercase;
+        /* Thin left rule — the "kandlijn" */
+        border-left: 1.5px solid rgba(0,0,0,0.15);
+        padding: 7px 0 7px 14px;
+        cursor: pointer;
+        border-top: none;
+        border-right: none;
+        border-bottom: none;
+        background: transparent;
+        transition: color 0.2s ease, border-left-color 0.2s ease;
+        line-height: 1;
+    }
+    .sidebar-nav-item:hover {
+        color: rgba(0,0,0,0.85);
+        border-left-color: rgba(0,0,0,0.6);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SITE FOOTER — WIT
+    ═══════════════════════════════════════════════════════════════ */
+    .site-footer {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 48px 8%;
+        border-top: 1px solid rgba(0,0,0,0.08);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .footer-name {
+        font-family: var(--font-title);
+        font-size: 0.82rem; font-weight: 600;
+        color: #1a1a1a; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .footer-email {
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        letter-spacing: 1.5px;
+        color: #1a1a1a;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(0,0,0,0.18);
+        padding-bottom: 1px;
+        transition: color 0.25s ease, border-color 0.25s ease;
+    }
+    .footer-email:hover {
+        color: #000;
+        border-color: #000;
+    }
+    .footer-copy {
+        font-family: var(--font-body);
+        font-size: 0.6rem; letter-spacing: 2px;
+        text-transform: uppercase; color: #888;
+    }
+
+    .footer-credits {
+    width: 100%;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    font-family: var(--font-body);
+    font-size: 0.56rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(0,0,0,0.38);
+    text-align: center;
+    line-height: 1.6;
+}
+.footer-credits a {
+    color: rgba(0,0,0,0.5);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,0,0,0.18);
+    padding-bottom: 1px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+.footer-credits a:hover {
+    color: #000;
+    border-color: #000;
+}
+.footer-credits .credits-sep {
+    margin: 0 7px;
+    opacity: 0.4;
+}
+
+    /* ═══════════════════════════════════════════════════════════════
+       REVEAL ANIMATIONS
+    ═══════════════════════════════════════════════════════════════ */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.in-view { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: 0.12s; }
+    .reveal-delay-2 { transition-delay: 0.22s; }
+    .reveal-delay-3 { transition-delay: 0.32s; }
+
+    #implosion-flash { position: fixed; inset: 0; pointer-events: none; z-index: 9999; background: radial-gradient(circle at center, rgba(0,0,0,0.45) 0%, transparent 65%); opacity: 0; transition: opacity 0.08s ease; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+        :root { --grid-margin: 24px; }
+        .hero-screen     { padding: 0 24px; }
+        .hero-meta       { left: 24px; right: 24px; }
+        .kw-cards-stack  { width: 85vw; height: 66vh; }
+        .meta-strip      { grid-template-columns: repeat(2,1fr); }
+        .intro-row       { grid-template-columns: 1fr; gap: 40px; }
+        .process-steps   { grid-template-columns: 1fr; }
+        .photo-row-2     { margin-bottom: 70px; }
+        .project-3d-stage { aspect-ratio: 4 / 5; border-radius: 14px; }
+        .over-mij-label-bar  { padding: 40px 24px 24px; }
+        .projecten-label-balk { padding: 40px 24px 0; }
+        
+        /* Responsive: hide sidebar on mobile */
+        .project-sidebar-nav { display: none; }
+        /* Responsive: timeline wraps */
+        .timeline-track { flex-wrap: wrap; gap: 24px; justify-content: center; }
+        .timeline-track::before { display: none; }
+        .timeline-line-fill { display: none; }
+        .timeline-step { opacity: 0; transform: translateY(14px); }
+        .competence-timeline.timeline-active .timeline-step        { opacity: 0.30; transform: none; }
+        .competence-timeline.timeline-active .timeline-step.tl-mid { opacity: 0.65; }
+        .competence-timeline.timeline-active .timeline-step.tl-strong { opacity: 1; }
+        .competence-timeline.timeline-active .timeline-step.tl-green  { opacity: 1; }
+        /* Intro text smaller on mobile */
+        .intro-line-inner { font-size: clamp(18px, 5.5vw, 28px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       004 OVER MIJ — Horizontale kaartscroll + barrel effect
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Sticky track: 840vh — ~140vh per card transition */
+    .om-master-track {
+        height: 840vh;
+        position: relative;
+    }
+    .om-sticky-view {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: #ffffff;
+        -webkit-font-smoothing: antialiased;
+        perspective: 1100px;
+    }
+
+    /* ── Editorial background ─────────────────────────────── */
+    /* Two large words — low opacity, gently parallax with scroll */
+    .om-editorial-bg {
+        position: absolute;
+        left: 4vw;
+        top: 50%;
+        transform: translateY(-56%);
+        z-index: 1;
+        pointer-events: none;
+        will-change: transform;
+        user-select: none;
+        line-height: 0.82;
+    }
+    .om-ed-word {
+        display: block;
+        font-family: var(--font-title);
+        font-size: 32vw;
+        text-transform: uppercase;
+        letter-spacing: -0.03em;
+        color: #0e0d0c;
+        opacity: 0.038;
+        white-space: nowrap;
+    }
+    .om-ed-word:last-child { margin-left: 6vw; }
+
+    /* ── Cards track ─────────────────────────────────────── */
+    .om-cards-track {
+        position: absolute;
+        top: 0; left: 0;
+        height: 100vh;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        z-index: 5;
+        transform-style: preserve-3d;
+        will-change: transform;
+    }
+
+    /* 100vw per slide: one card centered per snap position */
+    .om-slide {
+        width: 100vw;
+        height: 100vh;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform-style: preserve-3d;
+    }
+
+    .om-card-wrapper {
+        position: relative;
+        will-change: transform;
+        transform-style: preserve-3d;
+    }
+
+    /* ── Uniform bio card — same language as project cards ── */
+    .om-bio-card {
+        width: 440px;
+        padding: 44px;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 20px 55px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background: #ffffff;
+    }
+
+    /* Palette: white / off-white / dark — same tokens as the rest */
+    .om-card-white  { background: #ffffff; color: #0e0d0c; }
+    .om-card-accent { background: #f5f5f4; color: #1a1a1a; border-color: rgba(0,0,0,0.06); }
+    .om-card-dark   {
+        background: #0e0d0c; color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 20px 55px rgba(0,0,0,0.20);
+    }
+
+    /* Tag — same as every section label on the page */
+    .om-bio-tag {
+        font-family: var(--font-body);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .18em;
+        margin-bottom: 20px;
+        color: #888;
+    }
+    .om-card-dark .om-bio-tag { color: rgba(255,255,255,0.35); }
+
+    /* Heading — same font/scale as kw-card-title */
+    .om-main-word {
+        font-family: var(--font-title);
+        font-size: 3.2rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        line-height: 0.95;
+        margin-bottom: 20px;
+        letter-spacing: 0.01em;
+        color: inherit;
+    }
+    .om-main-word em {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    /* Body — same weight/size/line-height as intro-line-inner */
+    .om-bio-card p {
+        font-family: var(--font-body);
+        font-size: 0.88rem;
+        font-weight: 400;
+        line-height: 1.72;
+        color: #555;
+        margin: 0;
+    }
+    .om-card-dark p   { color: rgba(255,255,255,0.55); }
+    .om-card-accent p { color: #444; }
+
+    /* Chips — same as .skill-chip elsewhere */
+    .om-chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 24px;
+    }
+    .om-bio-card .skill-chip { padding: 10px 18px; font-size: 10px; }
+    .om-card-dark .skill-chip {
+        border-color: rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.72);
+        background: transparent;
+    }
+    .om-card-dark .skill-chip:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.45);
+        color: #fff;
+    }
+    .om-card-dark .chip-dot { background: rgba(255,255,255,0.45); }
+
+    /* Scroll hint — mirrors kw-scroll-hint; absolutely positioned above progress bar */
+    .om-scroll-hint {
+        position: absolute;
+        bottom: 52px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        margin-top: 0;
+        white-space: nowrap;
+    }
+
+    /* Progress bar — matches the subtle dividers used site-wide */
+    .om-progress-container {
+        position: absolute;
+        bottom: 28px;
+        left: 5vw;
+        width: 90vw;
+        height: 1px;
+        background: rgba(0,0,0,0.08);
+        z-index: 100;
+    }
+    .om-progress-fill {
+        width: 0%; height: 100%;
+        background: #0e0d0c;
+        opacity: 0.32;
+    }
+
+    /* ── Contact card (dark) ─────────────────────────────── */
+    .om-contact-info {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+    .om-contact-email {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        width: fit-content;
+    }
+    .om-email-label {
+        display: block;
+        font-family: var(--font-body);
+        font-size: 0.88rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        color: rgba(255,255,255,0.72);
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding-bottom: 3px;
+        transition: color 0.22s ease, border-color 0.22s ease;
+    }
+    .om-contact-email:hover .om-email-label {
+        color: #ffffff;
+        border-color: rgba(255,255,255,0.65);
+    }
+    .om-contact-email:hover { cursor: none; }
+    .om-bio-card.om-card-dark { cursor: none; }
+    .om-copy-tip {
+        position: fixed;
+        top: 0; left: 0;
+        width: 96px; height: 96px;
+        margin: -48px 0 0 -48px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #0e0d0c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8px;
+        font-family: var(--font-body);
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+        line-height: 1.3;
+        text-transform: uppercase;
+        white-space: normal;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, background 0.2s ease;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+        z-index: 9999;
+    }
+    .om-copy-tip.om-tip-visible { opacity: 1; }
+    .om-copy-tip.om-copied { background: #e8e8e8; }
+    /* ── Portret-kaart ──────────────────────────────────────── */
+    .om-photo-card {
+        padding: 0;
+        align-items: stretch;
+        text-align: center;
+    }
+    .om-portrait-img {
+        width: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center 12%;
+        height: 300px;
+        flex-shrink: 0;
+    }
+    .om-photo-caption {
+        padding: 24px 44px 36px;
+    }
+    .om-photo-caption .om-bio-tag {
+        margin-bottom: 12px;
+    }
+    .om-photo-caption .om-main-word {
+        margin-bottom: 8px;
+    }
+    .om-photo-caption p {
+        color: #888;
+    }
+
+    .om-linkedin {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.38);
+        text-decoration: none;
+        transition: color 0.22s ease;
+    }
+    .om-linkedin:hover { color: rgba(255,255,255,0.82); }
+
+    </style>
+</head>
+<body>
+
+<script>
+/* ScrollTrigger-veilige scroll-animatie. Native `window.scrollTo({behavior:
+   'smooth'})` botst met GSAP ScrollTrigger's gepinde secties (Kernwaarden,
+   Over mij): de browser en ScrollTrigger houden dan ELK hun eigen idee van
+   de scrollpositie bij, en bij lange sprongen over meerdere gepinde
+   secties kan dat de native animatie laten "overschieten" naar de
+   onderkant van de pagina. GSAP's eigen ScrollToPlugin draait in dezelfde
+   ticker als ScrollTrigger en blijft daarmee gesynchroniseerd, dus die
+   gebruiken we hier i.p.v. de native browser-scroll. */
+function smoothScrollToY(targetY, duration){
+    duration = duration || 850;
+    if (window.gsap && window.ScrollToPlugin) {
+        gsap.registerPlugin(ScrollToPlugin);
+        gsap.to(window, {
+            duration: duration / 1000,
+            scrollTo: { y: targetY, autoKill: false },
+            ease: 'power3.inOut'
+        });
+        return;
+    }
+    // Fallback zonder GSAP ScrollToPlugin: handmatige, frame-voor-frame scroll.
+    const startY = window.scrollY;
+    const diff = targetY - startY;
+    if (Math.abs(diff) < 2) return;
+    const startTime = performance.now();
+    function step(now){
+        const t = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        window.scrollTo(0, startY + diff * eased);
+        if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+</script>
+
+<div id="implosion-flash"></div>
+
+<div class="info-title-bar" id="info-title-bar">
+    <span class="info-title-number" id="info-title-number">001</span>
+    <span class="info-title-sep"></span>
+    <span class="info-title-name" id="info-title-name">VCS</span>
+</div>
+
+<button class="close-fullscreen-btn" id="close-btn">← Sluiten</button>
+
+<!-- ── PROJECT SIDEBAR NAV — bare left-edge links ───────────── -->
+<nav class="project-sidebar-nav" id="project-sidebar-nav" aria-label="Project navigatie">
+    <button class="sidebar-nav-item" id="sidebar-intro">Intro</button>
+    <button class="sidebar-nav-item" id="sidebar-media">Media</button>
+    <button class="sidebar-nav-item" id="sidebar-process">Ontwerpproces</button>
+    <button class="sidebar-nav-item" id="sidebar-next">Volgend Project</button>
+</nav>
+
+<!-- ── VASTE HEADER ─────────────────────────────────────────── -->
+<header class="site-header" id="site-header">
+    <nav class="nav-links">
+        <a href="#kernwaarden-scroll">Kernwaarden</a>
+        <a href="#projecten-sectie">Projecten</a>
+        <a href="#over-mij">Over mij</a>
+    </nav>
+    <div class="header-year">2026</div>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────────── -->
+<!-- CHANGE 1: Updated hero headline -->
+<div class="hero-screen">
+    <section class="hero held">
+        <div class="held-h1-omhulsel">
+            <h1 class="held-h1" aria-label="Ontwerpen voor mensen coderen voor resultaat">
+                Ontwerpen voor<br>
+                <em>mensen</em> coderen<br>
+                voor <em>resultaat</em>
+            </h1>
+        </div>
+    </section>
+    <div class="hero-meta">
+        <span class="hero-scroll-hint">Scroll<svg class="scroll-arrow" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.5V13M8 13L3.5 8.5M8 13L12.5 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+</div>
+
+<!-- ── 001 INTRODUCTIE — OVERHAULED ────────────────────────── -->
+<!-- CHANGE 2 & 3: New centered impact text + timeline -->
+<div class="container" id="intro-section">
+    <section class="intro-section">
+
+        <div class="intro-label">001 INTRODUCTIE</div>
+
+        <div class="intro-text-wrap">
+            <!-- Each sentence slides up independently via --si delay -->
+            <div class="intro-sentences" id="intro-sentences">
+                <div class="intro-line-wrap">
+                    <span class="intro-line-inner" style="--si:0">
+                        Ik ben een digital designer die ontwerpt voor mensen en bouwt voor resultaat.
+                    </span>
+                </div>
+                <div class="intro-line-wrap">
+                    <span class="intro-line-inner" style="--si:1">
+                        Door de belangen van gebruikers centraal te stellen in mijn proces,
+                    </span>
+                </div>
+                <div class="intro-line-wrap">
+                    <span class="intro-line-inner" style="--si:2">
+                        transformeer ik Figma-concepten naar krachtige browser-ervaringen
+                    </span>
+                </div>
+                <div class="intro-line-wrap">
+                    <span class="intro-line-inner" style="--si:3">
+                        waar techniek en een positieve gebruikersreis onlosmakelijk met elkaar verbonden zijn.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHANGE 3: Horizontal Competence Timeline -->
+        <div class="competence-timeline" id="competence-timeline">
+            <div class="timeline-track">
+                <!-- The animated fill line that "unfolds" left to right -->
+                <div class="timeline-line-fill"></div>
+
+                <!-- Muted: Idee -->
+                <div class="timeline-step" style="--step-i:0">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Idee</span>
+                </div>
+
+                <!-- GRAY (tl-mid): Doelgroeponderzoek — ik kan het een beetje -->
+                <div class="timeline-step tl-mid" style="--step-i:1">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Doelgroep&shy;onderzoek</span>
+                </div>
+
+                <!-- STRONG (black): Ontwerpen -->
+                <div class="timeline-step tl-strong" style="--step-i:2">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Ontwerpen</span>
+                    <span class="timeline-badge">kern</span>
+                </div>
+
+                <!-- STRONG (black): Testen -->
+                <div class="timeline-step tl-strong" style="--step-i:3">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Testen</span>
+                    <span class="timeline-badge">kern</span>
+                </div>
+
+                <!-- STRONG (black): Coderen -->
+                <div class="timeline-step tl-strong" style="--step-i:4">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Coderen</span>
+                    <span class="timeline-badge">kern</span>
+                </div>
+
+                <!-- GREEN (tl-green): Gebruikerservaring — positief resultaat -->
+                <div class="timeline-step tl-green" style="--step-i:5">
+                    <div class="timeline-node"></div>
+                    <span class="timeline-label">Gebruikers&shy;ervaring</span>
+                    <span class="timeline-badge">uitkomst</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<!-- ── 002 KERNWAARDEN — PINNED CARD STACK ──────────────────── -->
+<section id="kernwaarden-scroll">
+    <div id="kw-sticky">
+        <span class="kw-section-label">002 KERNWAARDEN</span>
+        <div class="kw-intro-text">
+            Dit zijn de principes<br>die bepalen hoe ik<br>aan jouw project werk
+            <div class="kw-scroll-hint">Scroll<svg class="scroll-arrow" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.5V13M8 13L3.5 8.5M8 13L12.5 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="kw-cards-stack">
+            <div class="kw-card">
+                <canvas class="kw-smoke-canvas"></canvas>
+                <h3 class="kw-card-title">Leergierig</h3>
+                <p class="kw-card-description">De digitale wereld vraagt om een proactieve houding; ik wacht niet af tot kennis naar mij toe komt, maar ga er zelf naar op zoek. Of het nu gaat om het verfijnen van mijn codeerskills of het ontdekken van nieuwe designtools buiten mijn studie om, mijn drive om te blijven verbeteren is de motor achter mijn groei. Stilstand is voor mij geen optie; ik wil mezelf elke dag uitdagen om een completere designer te worden.</p>
+            </div>
+            <div class="kw-card">
+                <canvas class="kw-smoke-canvas"></canvas>
+                <h3 class="kw-card-title">Gedisciplineerd</h3>
+                <p class="kw-card-description">Kwaliteit ontstaat door doorzettingsvermogen. Mijn achtergrond in de duursport heeft mij geleerd dat focus en uithoudingsvermogen essentieel zijn om de finish te halen. Deze mentaliteit vertaal ik direct naar mijn werkethiek: ik ga voor het hoogst haalbare resultaat, werk volgens een strakke planning en zorg dat elk detail klopt, van de eerste schets tot de uiteindelijke realisatie.</p>
+            </div>
+            <div class="kw-card">
+                <canvas class="kw-smoke-canvas"></canvas>
+                <h3 class="kw-card-title">Gestructureerd</h3>
+                <p class="kw-card-description">Een sterk ontwerp heeft een helder fundament nodig om effectief te kunnen communiceren. Door consequent gebruik te maken van gridsystemen en witruimte, creëer ik rust en overzicht voor de gebruiker. Mijn aanpak is logisch en georganiseerd, waardoor complexe vraagstukken worden getransformeerd naar een professionele, consistente en verzorgde interface.</p>
+            </div>
+            <div class="kw-card">
+                <canvas class="kw-smoke-canvas"></canvas>
+                <h3 class="kw-card-title">Hybride</h3>
+                <p class="kw-card-description">Design en code zijn voor mij onlosmakelijk met elkaar verbonden; ik ben de brug tussen de tekentafel en de techniek. Ik ontwerp niet alleen in Figma, maar begrijp ook precies hoe een visuele visie in de browser tot leven komt. Door de taal van beide werelden te spreken, zorg ik dat een strak ontwerp naadloos overgaat in een werkende realiteit, waarbij kwaliteit en vakmanschap in elke regel code behouden blijven.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── 003 MIJN WERKEN (Projecten) ───────────────────────── -->
+<div id="projecten-sectie">
+    <div class="projecten-label-balk">
+        <div class="container"><span class="section-num">003 MIJN WERKEN</span></div>
+    </div>
+
+    <div class="page-wrapper">
+        <section class="hero-matrix-section" id="hero-section">
+            <div class="matrix-layout-anchor" id="matrix-anchor">
+
+                <div class="matrix-window" id="matrix-window">
+                    <div id="threejs-container"></div>
+                    <button class="discover-project-btn" id="discover-btn">Ontdek Project →</button>
+
+                    <div id="project-list">
+                        <ul>
+                            <li class="active" data-index="0">VCS</li>
+                            <li data-index="1">Green Up</li>
+                            <li data-index="2">Posters</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project detail overlay -->
+        <section class="project-details-section" id="details-section">
+            <div class="project-hero-block">
+                <div class="ghost-title" id="ghost-title" aria-hidden="true">VCS</div>
+                <div class="project-hero-eyebrow" id="dyn-eyebrow">001 — Project</div>
+                <h2 class="project-hero-title" id="dyn-title">VCS</h2>
+                <p class="project-hero-subtitle" id="dyn-subtitle">Voetbalclub identiteit &amp; website herontwerp</p>
+            </div>
+
+            <div class="asymmetric-container">
+                <div class="meta-strip reveal">
+                    <div class="meta-item">
+                        <span class="meta-label">Jaar</span>
+                        <span class="meta-value" id="dyn-year">2026</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Rol</span>
+                        <span class="meta-value" id="dyn-role">UX/UI Designer &amp; Developer</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Deliverable</span>
+                        <span class="meta-value" id="dyn-deliverable">Website Redesign &amp; Hi-fi Prototype</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Tools</span>
+                        <span class="meta-value" id="dyn-tools">Figma · HTML · CSS</span>
+                    </div>
+                </div>
+
+                <div class="intro-row">
+                    <div>
+                        <p class="case-intro-text" id="dyn-desc">
+                            Voor voetbalvereniging VCS Den Haag heb ik een herontwerp gerealiseerd dat de kloof tussen de warme clubcultuur en de digitale gebruikerservaring dicht.
+                        </p>
+                    </div>
+                    <div class="case-side-col">
+                        <div class="tags-strip" id="dyn-tags">
+                            <span class="tag">UX Research</span>
+                            <span class="tag">UI Design</span>
+                            <span class="tag">Accessibility (WCAG)</span>
+                            <span class="tag">Web Development</span>
+                            <span class="tag">Performance Optimization</span>
+                        </div>
+                        <p class="case-side-text" id="dyn-tech-text">
+                            Door de behoeften van persona's zoals de voorzitter en de nieuwkomers centraal te stellen, is de website getransformeerd tot een toegankelijk middelpunt voor jong en oud.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CHANGE 5: Media Gallery anchor for sidebar nav -->
+                <div id="media-gallery-anchor"></div>
+
+                <div class="project-3d-stage reveal" id="project-3d-stage">
+                    <!-- 001 VCS — Macbook showcase -->
+                    <div class="stage-instance" data-stage-index="0" id="stage-vcs">
+                        <canvas id="canvas-vcs"></canvas>
+                        <div class="stage-loading" id="loading-vcs">
+                            <span id="loading-vcs-txt">MacBooks laden…</span>
+                            <div class="stage-bar-wrap"><div class="stage-bar" id="bar-vcs"></div></div>
+                        </div>
+                    </div>
+                    <!-- 002 Green Up — iPhone showcase -->
+                    <div class="stage-instance" data-stage-index="1" id="stage-proef">
+                        <canvas id="canvas-proef"></canvas>
+                        <div class="stage-loading" id="loading-proef">
+                            <span id="loading-proef-txt">Telefoons laden…</span>
+                            <div class="stage-bar-wrap"><div class="stage-bar" id="bar-proef"></div></div>
+                        </div>
+                    </div>
+                    <!-- 003 Posters — Magazine showcase -->
+                    <div class="stage-instance" data-stage-index="2" id="stage-posters">
+                        <canvas id="canvas-posters"></canvas>
+                        <div class="stage-loading" id="loading-posters">
+                            <span id="loading-posters-txt">Magazines laden…</span>
+                            <div class="stage-bar-wrap"><div class="stage-bar" id="bar-posters"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="photo-row-2 reveal">
+                    <p class="case-side-text" id="dyn-tech-text-2">
+                        Het proces begon in Figma, waar het concept "VCS Thuisbasis" is vertaald naar een visuele balans tussen clubwarmte en structurele helderheid.
+                    </p>
+                </div>
+
+                <!-- CHANGE 5: Ontwerpproces anchor for sidebar nav -->
+                <div id="project-process-anchor"></div>
+
+                <div class="process-section">
+                    <p class="section-label">Ontwerpproces</p>
+                    <div class="process-steps">
+                        <div class="process-step reveal">
+                            <span class="step-number">01 —</span>
+                            <h3 class="step-title" id="proc-1-title">Onderzoek</h3>
+                            <p class="step-body" id="proc-1-body">Door middel van stakeholder-interviews en een thematische analyse zijn de kernwaarden "saamhorigheid" en "vriendschap" geïdentificeerd.</p>
+                        </div>
+                        <div class="process-step reveal reveal-delay-1">
+                            <span class="step-number">02 —</span>
+                            <h3 class="step-title" id="proc-2-title">Ontwerp</h3>
+                            <p class="step-body" id="proc-2-body">Vanuit het dilemma tussen "Strak" en "Verbeelding" is een visuele identiteit ontstaan die rust uitstraalt door ruimtelijke witruimte.</p>
+                        </div>
+                        <div class="process-step reveal reveal-delay-2">
+                            <span class="step-number">03 —</span>
+                            <h3 class="step-title" id="proc-3-title">Ontwikkeling</h3>
+                            <p class="step-body" id="proc-3-body">De realisatie vond plaats via handmatige codering met CSS Grid en Flexbox voor een volledig responsive resultaat.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block-section reveal">
+                    <p class="section-label">Code Highlight</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span class="code-dot code-dot-r"></span>
+                                <span class="code-dot code-dot-y"></span>
+                                <span class="code-dot code-dot-g"></span>
+                            </div>
+                            <span class="code-filename" id="dyn-code-filename">styles/hero.css</span>
+                        </div>
+                        <div class="code-body">
+                            <pre id="dyn-code"><span class="tok-comment">/* Hero layout — VCS Thuisbasis */</span>
+<span class="tok-selector">.hero-section</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">display</span><span class="tok-punc">:</span>               <span class="tok-value">grid</span><span class="tok-punc">;</span>
+  <span class="tok-prop">grid-template-columns</span><span class="tok-punc">:</span>  <span class="tok-value">repeat(12, 1fr)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">gap</span><span class="tok-punc">:</span>                  <span class="tok-value">var(--spacing-xl)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">align-items</span><span class="tok-punc">:</span>          <span class="tok-value">center</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span>
+<span class="tok-selector">.hero-title</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">grid-column</span><span class="tok-punc">:</span>          <span class="tok-value">1 / 8</span><span class="tok-punc">;</span>
+  <span class="tok-prop">font-size</span><span class="tok-punc">:</span>            <span class="tok-value">clamp(3rem, 8vw, 7rem)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">font-weight</span><span class="tok-punc">:</span>          <span class="tok-value">800</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="next-project-trigger reveal" id="next-trigger">
+                    <div class="next-left">
+                        <span class="next-sup">Volgend project</span>
+                        <span class="next-project-label" id="dyn-next">Green Up</span>
+                    </div>
+                    <div class="next-arrow">→</div>
+                </div>
+
+            </div><!-- /.asymmetric-container -->
+        </section><!-- /.project-details-section -->
+    </div><!-- /.page-wrapper -->
+</div><!-- /#projecten-sectie -->
+
+<!-- ── 005 OVER MIJ — volledig inline, geen iframe ──────────── -->
+<section id="over-mij" class="over-mij-iframe-section">
+    <div class="over-mij-label-bar">
+        <div class="container"><div class="over-mij-label">004 OVER MIJ</div></div>
+    </div>
+
+    <!-- Sticky 840vh scroll experience -->
+    <div class="om-master-track">
+        <div class="om-sticky-view">
+
+            <!-- Editorial background: two large words, barely visible, slow parallax -->
+            <div class="om-editorial-bg" aria-hidden="true">
+                <span class="om-ed-word">OVER</span>
+                <span class="om-ed-word">MIJ</span>
+            </div>
+
+            <!-- Horizontal card track — 5 slides × 100vw -->
+            <div class="om-cards-track">
+
+                <!-- 01 OVER MIJ -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-white">
+                            <div class="om-bio-tag">01 / OVER MIJ</div>
+                            <div class="om-main-word">DIGITALE ARCHITECT</div>
+                            <p>Ik ben Hidde Vermaas, een digital designer die gelooft dat een succesvol product begint bij een onwrikbaar fundament. Ik combineer onderzoek, psychologie en techniek om digitale omgevingen te creëren waar de gebruiker zich echt thuisvoelt — en die meetbare resultaten opleveren.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 02 WIE BEN IK -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-accent">
+                            <div class="om-bio-tag">02 / WIE BEN IK</div>
+                            <div class="om-main-word">BLAUWDRUK METHODE</div>
+                            <p>Geen pixel zonder reden. Ik trek eerst de lijnen op een strikt 12-koloms grid voordat ik begin met bouwen. Witruimte wordt functionele luxe. De discipline uit duursport en muziek geeft mij het ritme om elk detail te verfijnen tot het klopt — pixel-perfect, elke keer.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 03 HOE IK ONTWERP -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-white">
+                            <div class="om-bio-tag">03 / HOE IK ONTWERP</div>
+                            <div class="om-main-word">GEBRUIKER ALS BASIS</div>
+                            <p>Een project begint niet in Figma, maar bij de mens aan de andere kant van het scherm. Door stakeholder-interviews en persona-analyses breng ik de echte behoeften in kaart. Vervolgens sla ik de brug: ik ontwerp niet alleen interfaces, maar bouw ze ook met semantische HTML en CSS.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 04 GEREEDSCHAPSKIST -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-accent">
+                            <div class="om-bio-tag">04 / GEREEDSCHAPSKIST</div>
+                            <div class="om-main-word">Mijn <em>Gereedschapskist</em></div>
+                            <p>Van ontwerp tot code, van ritme tot teamwork — tools en eigenschappen waarmee ik elke dag werk.</p>
+                            <div class="om-chips">
+                                <span class="skill-chip"><span class="chip-dot"></span>FIGMA</span>
+                                <span class="skill-chip"><span class="chip-dot"></span>HTML</span>
+                                <span class="skill-chip"><span class="chip-dot"></span>CSS</span>
+                                <span class="skill-chip"><span class="chip-dot"></span>ADOBE INDESIGN</span>
+                                <span class="skill-chip"><span class="chip-dot"></span>PIANO</span>
+                                <span class="skill-chip"><span class="chip-dot"></span>TEAMSPORT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 05 PORTRET -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-white om-photo-card">
+                            <img class="om-portrait-img" src="Images/PortfolioPortret.png" alt="Hidde Vermaas">
+                            <div class="om-photo-caption">
+                                <div class="om-bio-tag">05 / PORTRET</div>
+                                <div class="om-main-word">Hidde <em>Vermaas</em></div>
+                                <p>Communicatie & MultiMedia Design Student</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 06 CONTACT -->
+                <div class="om-slide">
+                    <div class="om-card-wrapper">
+                        <div class="om-bio-card om-card-dark">
+                            <div class="om-bio-tag">06 / CONTACT</div>
+                            <div class="om-main-word">LATEN WE BOUWEN.</div>
+                            <p>Op zoek naar een leergierige stagiair die de volledige cyclus van Think, Make en Break beheerst? Ik kom graag in contact om te bespreken hoe ik waarde kan toevoegen aan jullie team.</p>
+                            <div class="om-contact-info">
+                                <div class="om-contact-email" id="om-email-copy" role="button" tabindex="0" aria-label="Kopieer e-mailadres">
+                                    <span class="om-copy-tip" id="om-copy-tip">Copy email</span>
+                                    <span class="om-email-label">hidde@vermaas.net</span>
+                                </div>
+                                <a class="om-linkedin" href="https://www.linkedin.com/in/hiddevermaas" target="_blank" rel="noopener noreferrer">LinkedIn →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /.om-cards-track -->
+
+            <!-- Scroll indicator — identical to kernwaarden kw-scroll-hint -->
+            <div class="kw-scroll-hint om-scroll-hint">Scroll<svg class="scroll-arrow" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.5V13M8 13L3.5 8.5M8 13L12.5 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+            <!-- Scroll progress indicator -->
+            <div class="om-progress-container">
+                <div class="om-progress-fill"></div>
+            </div>
+
+        </div><!-- /.om-sticky-view -->
+    </div><!-- /.om-master-track -->
+</section>
+<!-- ── SITE FOOTER — CHANGE 7: added contact email ─────────── -->
+<footer class="site-footer">
+    <span class="footer-name">Hidde Vermaas</span>
+    <a class="footer-email" href="mailto:hidde@vermaas.net">hidde@vermaas.net</a>
+    <span class="footer-copy">&copy; 2026</span>
+    <div class="footer-credits">
+        3D modellen via Sketchfab —
+        <a href="https://sketchfab.com/3d-models/macbook-pro-m3-16-inch-2024-8e34fc2b303144f78490007d91ff57c4" target="_blank" rel="noopener noreferrer">MacBook Pro M3</a> door
+        <a href="https://sketchfab.com/jackbaeten" target="_blank" rel="noopener noreferrer">jackbaeten</a><span class="credits-sep">·</span>
+        <a href="https://sketchfab.com/3d-models/iphone-17-pro-4541aa8a28324b33a2baaf81d263aaec" target="_blank" rel="noopener noreferrer">iPhone 17 Pro</a> door
+        <a href="https://sketchfab.com/Ranguel" target="_blank" rel="noopener noreferrer">Ranguel</a><span class="credits-sep">·</span>
+        <a href="https://sketchfab.com/3d-models/open-magazine-01a548cb6fc341c98a99375755cf6ce3" target="_blank" rel="noopener noreferrer">Open Magazine</a> door
+        <a href="https://sketchfab.com/abdillaamy" target="_blank" rel="noopener noreferrer">abdillaamy</a> — gelicentieerd onder
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+    </div>
+</footer>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+
+/* ── Frosted header on scroll ───────────────────────────── */
+(function () {
+    var hdr = document.getElementById('site-header');
+    if (!hdr) return;
+    window.addEventListener('scroll', function () {
+        hdr.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+})();
+
+/* ── Scroll-animaties voor .animeer elementen ────────────── */
+(function () {
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('zichtbaar');
+            }
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.animeer').forEach(function (el) {
+        observer.observe(el);
+    });
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   SLIMY HERO TEXT ANIMATION
+══════════════════════════════════════════════════════════ */
+(function initHeroReveal() {
+    const h1 = document.querySelector('.held-h1');
+    if (!h1) return;
+
+    const ariaLabel = h1.innerText.trim();
+
+    const raw = h1.innerHTML;
+    const lineParts = raw.split(/<br\s*\/?>/i);
+
+    h1.setAttribute('aria-label', ariaLabel);
+    h1.innerHTML = '';
+
+    lineParts.forEach((lineHTML, i) => {
+        const cleaned = lineHTML.replace(/^[\s\n]+|[\s\n]+$/g, '');
+        if (!cleaned) return;
+
+        const wrap  = document.createElement('span');
+        wrap.className = 'hl-wrap';
+
+        const inner = document.createElement('span');
+        inner.className = 'hl-inner';
+        inner.style.setProperty('--li', i);
+        inner.innerHTML = cleaned;
+
+        wrap.appendChild(inner);
+        h1.appendChild(wrap);
+    });
+})();
+
+/* ══════════════════════════════════════════════════════════
+   CHANGE 2: INTRO TEXT — sentence-by-sentence slide-up on scroll
+══════════════════════════════════════════════════════════ */
+function initIntroAnimation() {
+    const sentences = document.getElementById('intro-sentences');
+    if (!sentences) return;
+
+    const obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                sentences.classList.add('intro-visible');
+                obs.unobserve(sentences);
+            }
+        });
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+    });
+
+    obs.observe(sentences);
+}
+
+/* ══════════════════════════════════════════════════════════
+   CHANGE 3: COMPETENCE TIMELINE ANIMATION (unfolds L→R)
+══════════════════════════════════════════════════════════ */
+function initTimeline() {
+    const timeline = document.getElementById('competence-timeline');
+    if (!timeline) return;
+
+    const obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                timeline.classList.add('timeline-active');
+                obs.unobserve(timeline);
+            }
+        });
+    }, { threshold: 0.30 });
+
+    obs.observe(timeline);
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROJECTEN — VOLLEDIG JAVASCRIPT
+══════════════════════════════════════════════════════════ */
+
+/* Per-project accentkleur — past bij de kleur van de 3D-wereld */
+const themeAccents = [
+    { accent: '#E63946', dim: 'rgba(230,57,70,0.07)'  },  /* VCS — rood */
+    { accent: '#0FA060', dim: 'rgba(15,160,96,0.07)'  },  /* Green Up — groen */
+    { accent: '#3a3a3a', dim: 'rgba(0,0,0,0.05)'      },  /* Posters — grijs/zwart */
+];
+
+function applyAccent(index) {
+    const a = themeAccents[index];
+    document.documentElement.style.setProperty('--accent',     a.accent);
+    document.documentElement.style.setProperty('--accent-dim', a.dim);
+}
+
+const IMG = 'Images/HeroFotoPS2Desktop.jpeg';
+
+const projectData = [
+    {
+        index:'001', title:'VCS',
+        subtitle:'Voetbalclub identiteit & website herontwerp',
+        year:'2026', role:'UX/UI Designer & Developer',
+        deliverable:'Website Redesign & Hi-fi Prototype', tools:'Figma · HTML · CSS',
+        tags:['UX Research','UI Design','Accessibility (WCAG)','Web Development','Performance Optimization'],
+        desc:'Voor voetbalvereniging VCS Den Haag heb ik een herontwerp gerealiseerd dat de kloof tussen de warme clubcultuur en de digitale gebruikerservaring dicht. Met het concept "VCS Thuisbasis" heb ik de gezelligheid van de zijlijn en de duidelijkheid van de bestuurskamer vertaald naar een modern platform.',
+        techText:'Door de behoeften van persona\'s zoals de voorzitter en de nieuwkomers centraal te stellen, is de website getransformeerd tot een toegankelijk middelpunt voor jong en oud. Door scherpe keuzes in semantiek en media-optimalisatie is een Lighthouse-score van 100 behaald.',
+        techText2:'Het proces begon in Figma, waar het concept "VCS Thuisbasis" is vertaald naar een visuele balans tussen clubwarmte en structurele helderheid. Dit ontwerp is handmatig gecodeerd in semantische HTML5 met een robuust 12-koloms CSS Grid.',
+        quote:'"De regie over zowel vorm als techniek stelt me in staat om ontwerpen te bouwen die niet alleen visueel prikkelen, maar ook technisch perfect presteren."',
+        quoteCite:'Hidde Vermaas — Ontwerpfilosofie',
+        process:[
+            {title:'Onderzoek',    body:'Door middel van stakeholder-interviews en een thematische analyse zijn de kernwaarden "saamhorigheid" en "vriendschap" geïdentificeerd. De behoeften van het bestuur en de leden zijn vertaald naar User Stories.'},
+            {title:'Ontwerp',      body:'Vanuit het dilemma tussen "Strak" en "Verbeelding" is een visuele identiteit ontstaan die rust uitstraalt door ruimtelijke witruimte. Met wireframes en hi-fi prototypes is getest op learnability en herkenbaarheid.'},
+            {title:'Ontwikkeling', body:'De realisatie vond plaats via handmatige codering met CSS Grid en Flexbox. Om de snelheid te maximaliseren, zijn afbeeldingen geoptimaliseerd naar WebP-formaten, wat resulteerde in een razendsnelle gebruikerservaring.'}
+        ],
+        codeFilename:'styles/hero.css',
+        code:`<span class="tok-comment">/* Hero layout — VCS Thuisbasis */</span>
+<span class="tok-selector">.hero-section</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">display</span><span class="tok-punc">:</span>               <span class="tok-value">grid</span><span class="tok-punc">;</span>
+  <span class="tok-prop">grid-template-columns</span><span class="tok-punc">:</span>  <span class="tok-value">repeat(12, 1fr)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">gap</span><span class="tok-punc">:</span>                  <span class="tok-value">var(--spacing-xl)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">align-items</span><span class="tok-punc">:</span>          <span class="tok-value">center</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span>
+<span class="tok-selector">.hero-title</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">grid-column</span><span class="tok-punc">:</span>          <span class="tok-value">1 / 8</span><span class="tok-punc">;</span>
+  <span class="tok-prop">font-size</span><span class="tok-punc">:</span>            <span class="tok-value">clamp(3rem, 8vw, 7rem)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">font-weight</span><span class="tok-punc">:</span>          <span class="tok-value">800</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span>`,
+        img: IMG, next:'Green Up'
+    },
+   {
+        index:'002', title:'Green Up',
+        subtitle:'Interactief Smart Ecosysteem voor Focus & Balans',
+        year:'2025', role:'UX Researcher & Designer',
+        deliverable:'Interactief Concept & Design Strategie', tools:'Figma · User Research · Ideation',
+        tags:['User Research & Analyse','Persona Development','Ideation (Brainstorm 6-3-5)','Gamification & Nudging','Interaction Design'],
+        desc:'Voor dit project heb ik een integraal smart-ecosysteem ontwikkeld dat rust brengt in een hectische dagelijkse routine. Door versnipperde informatiebronnen en planningen te bundelen in één centraal portaal, biedt dit platform gebruikers de structuur die nodig is om focus te behouden. Het systeem fungeert als een digitale thuisbasis waar technologie niet afleidt, maar de gebruiker proactief ondersteunt bij het vinden van een gezonde balans tussen verplichtingen en ontspanning.',
+        techText:'Door diepgaand onderzoek naar gebruikersbehoeften is een oplossing gecreëerd die dagelijkse wrijving en stress direct reduceert. Gebruikersinzichten toonden aan dat een geïntegreerd systeem voor taken en sociale interactie niet alleen het overzicht verbetert, maar ook de intrinsieke motivatie verhoogt. Het platform transformeert een chaotische informatiestroom naar een gestructureerde ervaring waarin de gebruiker weer grip krijgt op zijn eigen tijd.',
+        techText2:'Het visuele ontwerp is geworteld in een heldere, minimalistische lay-out die rust en professionaliteit uitstraalt. Door gebruik te maken van intuïtieve interactie-elementen — zoals creatieve "schuifjes" voor data-invoer — wordt de cognitieve belasting geminimaliseerd. De interface is ontworpen om een concreet en overzichtelijk beeld te schetsen, waarbij elke visuele keuze de gebruiksvriendelijkheid direct versterkt.',
+        quote:'"Slimme technologie moet de onzichtbare wrijving uit de dagelijkse routine wegnemen, zodat er ruimte ontstaat voor wat er écht toe doet."',
+        quoteCite:'Hidde Vermaas — Ontwerpfilosofie',
+        process:[
+            {title:'Onderzoek',  body:'Het proces startte met het blootleggen van patronen in gebruikersfrustraties rondom onoverzichtelijkheid en tijdsverlies. Door middel van interviews en een uitgebreide datasheet-analyse werd de fundamentele behoefte aan één centrale plek voor structuur en planning geïdentificeerd.'},
+            {title:'Ontwerp',    body:'Via de Brainstorm 6-3-5 methode zijn diverse concepten verkend om deze behoefte aan overzicht te vertalen naar interactieve oplossingen. Hierbij is geëxperimenteerd met verschillende vormen van ondersteuning, van interactieve dashboards tot systemen die inspelen op de emotionele en fysieke gesteldheid van de gebruiker.'},
+            {title:'Uitwerking', body:'De definitieve realisatie is een platform dat persoonlijke planning combineert met slimme groepsinteractie. Door gamificatie-elementen te integreren — waarbij positieve acties worden beloond met scores en complimenten — wordt een motiverende omgeving gecreëerd die sociale verbinding en persoonlijke groei stimuleert.'}
+        ],
+        codeFilename:'logic/gamification.js',
+        code:`<span class="tok-comment">/* Beloningslogica — Smart Ecosystem Planner */</span>
+<span class="tok-punc">const</span> <span class="tok-selector">interactionScore</span> <span class="tok-punc">= {</span>
+  <span class="tok-prop">taskCompleted</span><span class="tok-punc">:</span>   <span class="tok-value">+10</span><span class="tok-punc">,</span> <span class="tok-comment">// Beloning voor structuur en voortgang</span>
+  <span class="tok-prop">qualityBonus</span><span class="tok-punc">:</span>    <span class="tok-value">+5</span><span class="tok-punc">,</span>
+  <span class="tok-prop">delayReduction</span><span class="tok-punc">:</span>  <span class="tok-value">-10</span> <span class="tok-comment">// Motivatie om focus te behouden</span>
+<span class="tok-punc">};</span>
+
+<span class="tok-comment">// Intelligente reminders voor persoonlijke balans</span>
+<span class="tok-punc">function</span> <span class="tok-selector">triggerSmartSupport</span><span class="tok-punc">(</span><span class="tok-value">userTask</span><span class="tok-punc">) {</span>
+  <span class="tok-punc">if</span> <span class="tok-punc">(</span><span class="tok-prop">userTask.urgency</span> <span class="tok-punc">===</span> <span class="tok-value">'high'</span><span class="tok-punc">) {</span>
+    <span class="tok-punc">return</span> <span class="tok-value">\`Tijd voor focus! Voltooi je taak en verhoog je dagelijkse score.\`</span><span class="tok-punc">;</span>
+  <span class="tok-punc">}</span>
+<span class="tok-punc">}</span>`,
+        img: IMG, next:'Posters'
+    },
+    {
+        index:'003', title:'Posters',
+        subtitle:'Digitaal archief voor fysiek grafisch werk',
+        year:'2026', role:'Grafisch Designer',
+        deliverable:'Poster Serie & Digitaal Archief', tools:'InDesign · Illustrator',
+        tags:['Grid Systems','Witruimte','Visuele Hiërarchie','Abstractometer'],
+        desc:'Voor dit project heb ik de overstap gemaakt van "decoreren op gevoel" naar "organiseren op basis van logica". In een serie posters heb ik onderzocht hoe een strikt wiskundig fundament — de blauwdruk — de creativiteit niet beperkt, maar juist bevrijdt.',
+        techText:'Door de wetten van het baseline grid en het 12-koloms systeem strikt toe te passen, is een reeks beelden ontstaan die de kijker doelgericht sturen.',
+        techText2:'Elk ontwerp is geworteld in een onzichtbare gids: van de Gulden Snede voor website-indelingen tot irreguliere grids voor protestposters.',
+        quote:'"quote"',
+        quoteCite:'Hidde Vermaas — Ontwerpfilosofie',
+        process:[
+            {title:'Inspiratie & Observatie', body:'Het proces start buiten de computer met het observeren van \'verstilde chaos\' in de natuur of het ritme van de stad.'},
+            {title:'Grid & Systeem',          body:'In de productiefase vormt het grid de ruggengraat. Of het nu gaat om een modulair systeem of een hiërarchisch grid.'},
+            {title:'Reductie',                body:'Conform de Abstractometer-theorie wordt alle onnodige visuele ruis weggesneden tot alleen de kern overblijft.'}
+        ],
+        codeFilename:'layout/grid.css',
+        code:`<span class="tok-comment">/* Poster archief — rigide grid */</span>
+<span class="tok-selector">.poster-grid</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">display</span><span class="tok-punc">:</span>                <span class="tok-value">grid</span><span class="tok-punc">;</span>
+  <span class="tok-prop">grid-template-columns</span><span class="tok-punc">:</span> <span class="tok-value">repeat(6, 1fr)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">gap</span><span class="tok-punc">:</span>                   <span class="tok-value">2px</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span>`,
+        img: IMG, next:'VCS'
+    }
+
+];
+
+/* ── Three.js variabelen ─── */
+let scene, camera, renderer, raycaster, interactionPlane;
+let outerCubes, centralMatrix, bgMesh, bgMaterial;
+let light1, mouseLight, logoMesh, logoMaterial;
+let cubesArray = [];
+let mouseX=0, mouseY=0, targetMouseX=0, targetMouseY=0;
+const matrixWindow  = document.getElementById('matrix-window');
+const container     = document.getElementById('threejs-container');
+const implosionFlash = document.getElementById('implosion-flash');
+let clock = new THREE.Clock();
+// FIX (performance/crash-bugs): deze drie vlaggen zorgen dat de render-loop
+// stopt met zwaar werk wanneer het niet nodig is (tab op de achtergrond,
+// kubus buiten beeld gescrold) en dat een verloren WebGL-context niet tot
+// een permanent zwart scherm leidt.
+let contextLost = false;
+let pageVisible = !document.hidden;
+let cubeInView = true;
+let targetMatrixZ=0, currentMatrixZ=0;
+let targetMatrixRotX=0, targetMatrixRotY=0, currentMatrixRotX=0, currentMatrixRotY=0;
+let currentThemeIndex=0, targetGlobalSpin=0, currentGlobalSpin=0;
+const matrixMaterials=[], particleMaterials=[];
+const LERP_SPEED=0.04;
+let currentCubesOpacity=1.0;
+let implodeState='idle', implodeStartTime=0;
+const IMPLODE_DURATION=1350;
+let targetCamZ=4.0;
+const mouseVector = new THREE.Vector2();
+
+const themes = [
+    { matrix:[0x1a0304,0x330810,0x5c0e19,0x040001,0x8c1520], specular:0xFFD700, cloudMid:0x150002, cloudLight:0xcc2030 },
+    { matrix:[0x001a0d,0x003d1a,0x006b2d,0x000501,0x009944], specular:0x00F0FF, cloudMid:0x00150a, cloudLight:0x00cc70 },
+    { matrix:[0x111111,0x222222,0x383838,0x060606,0x505050], specular:0xd0d0d0, cloudMid:0x080808, cloudLight:0x606060 }
+];
+
+themes.forEach(t=>{
+    t.matrixColors = t.matrix.map(c => new THREE.Color(c));
+    t.specColor    = new THREE.Color(t.specular);
+    t.cMid         = new THREE.Color(t.cloudMid);
+    t.cLight       = new THREE.Color(t.cloudLight);
+});
+
+const bgVertexShader = `varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.0);}`;
+const bgFragmentShader = `
+    uniform vec2 u_mouse;uniform float u_time;
+    uniform vec3 u_colorMid;uniform vec3 u_colorLight;
+    varying vec2 vUv;
+    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+    float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);
+        return mix(mix(hash(i+vec2(0,0)),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.0;float a=0.5;vec2 s=vec2(100.0);
+        for(int i=0;i<4;++i){v+=a*noise(p);p=p*2.0+s;a*=0.5;}return v;}
+    void main(){
+        vec2 uv=vUv;vec2 p=uv*2.3;vec2 mm=u_mouse*0.15;float te=u_time*0.007;
+        float n=fbm(p+vec2(te,te)+mm);float n2=fbm(p-vec2(te,te)-mm+n*1.1);
+        float cn=pow(n2,3.2);float bh=pow(n,4.5)*0.9;
+        vec3 fc=mix(vec3(0.0),u_colorMid,cn*1.4);fc+=u_colorLight*bh;
+        fc*=1.0-dot(uv-0.5,uv-0.5)*0.3;gl_FragColor=vec4(fc,1.0);}
+`;
+
+function easeInExpo(t){return t===0?0:Math.pow(2,10*t-10);}
+function easeInQuart(t){return t*t*t*t;}
+
+function splitTitle(el){
+    const words = el.innerText.trim().split(/\s+/);
+    el.innerHTML = words.map((w,i) =>
+        `<span class="title-word-wrapper"><span class="title-word-inner" style="--wi:${i}">${w}</span></span>`
+    ).join('&nbsp;');
+}
+
+/* Jelly-distortion effect verwijderd — vervangen door 3D project-stages */
+
+function initScrollReveal(){
+    const detailsSec = document.getElementById('details-section');
+    const obs = new IntersectionObserver(entries=>{
+        entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');obs.unobserve(e.target);}});
+    },{threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+    if(detailsSec){
+        detailsSec.addEventListener('scroll', ()=>{
+            document.querySelectorAll('.reveal:not(.in-view)').forEach(el=>{
+                const rect = el.getBoundingClientRect();
+                if(rect.top < window.innerHeight * 0.88) el.classList.add('in-view');
+            });
+        });
+    }
+}
+
+/* ── Helper: go to next project with scroll reset ─── */
+function goToNextProject() {
+    const next = (currentThemeIndex + 1) % projectData.length;
+    document.querySelector('#project-list li.active').classList.remove('active');
+    document.querySelectorAll('#project-list li')[next].classList.add('active');
+    targetGlobalSpin -= Math.PI;
+    currentThemeIndex = next;
+    applyAccent(next);
+    updateProjectContent(next);
+    // CHANGE 5: Immediately reset scroll to top of project page
+    const details = document.getElementById('details-section');
+    if (details) details.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function setupNextTrigger(){
+    const trigger = document.getElementById('next-trigger');
+    if(!trigger) return;
+    trigger.addEventListener('click', () => { goToNextProject(); });
+}
+
+function setupMenu(){
+    document.querySelectorAll('#project-list li').forEach(item=>{
+        item.addEventListener('click', e=>{
+            const newIndex=parseInt(e.target.getAttribute('data-index'));
+            if(newIndex!==currentThemeIndex){
+                document.querySelector('#project-list li.active').classList.remove('active');
+                e.target.classList.add('active');
+                targetGlobalSpin-=Math.PI;
+                currentThemeIndex=newIndex;
+                applyAccent(newIndex);
+                updateProjectContent(newIndex);
+            }
+        });
+    });
+}
+
+function updateProjectContent(index){
+    const data=projectData[index]; if(!data)return;
+    const ids=['dyn-title','dyn-desc','dyn-tech-text','dyn-tech-text-2','dyn-subtitle',
+               'dyn-eyebrow','ghost-title','dyn-year','dyn-role','dyn-deliverable',
+               'dyn-tools','dyn-next','dyn-code-filename',
+               'proc-1-title','proc-1-body','proc-2-title','proc-2-body','proc-3-title','proc-3-body',
+               'info-title-number','info-title-name'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.opacity='0';});
+
+    setTimeout(()=>{
+        const set=(id,val)=>{const el=document.getElementById(id);if(el){el.style.opacity='1';el.textContent=val;}};
+        const setHtml=(id,val)=>{const el=document.getElementById(id);if(el){el.style.opacity='1';el.innerHTML=val;}};
+
+        document.getElementById('dyn-title').innerText=data.title;
+        splitTitle(document.getElementById('dyn-title'));
+        document.getElementById('dyn-title').style.opacity='1';
+
+        set('ghost-title',data.title);
+        set('dyn-subtitle',data.subtitle);
+        set('dyn-eyebrow',`${data.index} — Project`);
+        set('dyn-year',data.year);
+        set('dyn-role',data.role);
+        set('dyn-deliverable',data.deliverable);
+        set('dyn-tools',data.tools);
+        set('dyn-desc',data.desc);
+        set('dyn-tech-text',data.techText);
+        set('dyn-tech-text-2',data.techText2);
+        set('dyn-next',data.next);
+        set('dyn-code-filename',data.codeFilename);
+        set('info-title-number',data.index);
+        set('info-title-name',data.title);
+        setHtml('dyn-code',data.code);
+        data.process.forEach((p,i)=>{set(`proc-${i+1}-title`,p.title);set(`proc-${i+1}-body`,p.body);});
+
+        const tagsEl=document.getElementById('dyn-tags');
+        if(tagsEl) tagsEl.innerHTML=data.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+
+        if (window.update3DStage) window.update3DStage(index);
+    },260);
+}
+
+let _mousePending = false;
+function onDocumentMouseMove(event){
+    if (_mousePending) return;
+    _mousePending = true;
+    requestAnimationFrame(function() {
+        _mousePending = false;
+        const rect=matrixWindow.getBoundingClientRect();
+        const cx=event.clientX-rect.left, cy=event.clientY-rect.top;
+        // De cursor stuurt alleen nog de spotlight aan (mouseVector wordt
+        // in animate() gebruikt om mouseLight te positioneren). De kubus
+        // zelf blijft altijd op dezelfde plek en draait automatisch door.
+        mouseVector.x=(cx/rect.width)*2-1;
+        mouseVector.y=-(cy/rect.height)*2+1;
+    });
+}
+
+/* ── CHANGE 4: Helper — open project detail overlay ──── */
+function openProjectDetails(){
+    document.body.classList.add('info-screen-active');
+    const details = document.getElementById('details-section');
+    if(details) details.scrollTop = 0;
+    const d = projectData[currentThemeIndex];
+    document.getElementById('info-title-number').textContent = d.index;
+    document.getElementById('info-title-name').textContent = d.title;
+    if (window.update3DStage) window.update3DStage(currentThemeIndex);
+    if(implodeState === 'idle'){
+        implodeState = 'imploding';
+        implodeStartTime = performance.now();
+        targetCamZ = 2.2;
+    }
+}
+
+/* ── setupInteractions — geen fullscreen-zoom meer: klik op de kubus opent direct ── */
+function setupInteractions(){
+    matrixWindow.addEventListener('click', function(e) {
+        if(document.body.classList.contains('info-screen-active')) return;
+
+        // FIX: zonder WebGL is er geen kubus om op te raycasten — een
+        // klik op het vlak opent het project dan gewoon direct.
+        if (!webglAvailable) { openProjectDetails(); return; }
+
+        // Raycast: klik op de kubus → open project details direct
+        const rect = matrixWindow.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const clickVec = new THREE.Vector2(
+            (cx / rect.width) * 2 - 1,
+            -(cy / rect.height) * 2 + 1
+        );
+        raycaster.setFromCamera(clickVec, camera);
+        const intersects = raycaster.intersectObjects(cubesArray);
+        if(intersects.length > 0){
+            openProjectDetails();
+        }
+    });
+
+    // Discover button click → open project (stopPropagation to avoid double-firing)
+    document.getElementById('discover-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        openProjectDetails();
+    });
+
+    // CHANGE 4: Escape key handled in init() via keydown — kept there
+}
+
+/* ── Project sidebar navigation ───────────────────────────── */
+function setupProjectSidebar(){
+    // "Intro" → scroll back to the very top of the project page
+    const sidebarIntro = document.getElementById('sidebar-intro');
+    if(sidebarIntro){
+        sidebarIntro.addEventListener('click', function(e){
+            e.preventDefault();
+            const details = document.getElementById('details-section');
+            if(details) details.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // "Volgend Project" → scroll smoothly to the next-trigger at the bottom
+    const sidebarNext = document.getElementById('sidebar-next');
+    if(sidebarNext){
+        sidebarNext.addEventListener('click', function(e){
+            e.preventDefault();
+            const details = document.getElementById('details-section');
+            const nextTrigger = document.getElementById('next-trigger');
+            if(details && nextTrigger){
+                const containerRect = details.getBoundingClientRect();
+                const triggerRect   = nextTrigger.getBoundingClientRect();
+                const scrollTarget  = details.scrollTop + (triggerRect.top - containerRect.top) - 40;
+                details.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // "Ontwerpproces" → scroll to process anchor
+    const sidebarProcess = document.getElementById('sidebar-process');
+    if(sidebarProcess){
+        sidebarProcess.addEventListener('click', function(e){
+            e.preventDefault();
+            const details = document.getElementById('details-section');
+            const anchor  = document.getElementById('project-process-anchor');
+            if(details && anchor){
+                const containerRect = details.getBoundingClientRect();
+                const anchorRect    = anchor.getBoundingClientRect();
+                const scrollTarget  = details.scrollTop + (anchorRect.top - containerRect.top) - 80;
+                details.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // "Media" → scroll to media gallery anchor
+    const sidebarMedia = document.getElementById('sidebar-media');
+    if(sidebarMedia){
+        sidebarMedia.addEventListener('click', function(e){
+            e.preventDefault();
+            const details = document.getElementById('details-section');
+            const anchor  = document.getElementById('media-gallery-anchor');
+            if(details && anchor){
+                const containerRect = details.getBoundingClientRect();
+                const anchorRect    = anchor.getBoundingClientRect();
+                const scrollTarget  = details.scrollTop + (anchorRect.top - containerRect.top) - 80;
+                details.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            }
+        });
+    }
+}
+
+function closeFullscreenMode(){
+    targetCamZ=4.0;
+    document.body.classList.remove('info-screen-active','text-reveal-active');
+    if (window.pause3DStages) window.pause3DStages();
+    // Achtergrond + thema altijd terugzetten naar het standaard project (VCS),
+    // anders blijft de kubus-achtergrond hangen op een donker projectthema.
+    currentThemeIndex = 0;
+    document.querySelectorAll('#project-list li').forEach((li,i)=>li.classList.toggle('active', i===0));
+    applyAccent(0);
+    if (bgMaterial) {
+        bgMaterial.uniforms.u_colorMid.value.copy(themes[0].cMid);
+        bgMaterial.uniforms.u_colorLight.value.copy(themes[0].cLight);
+    }
+    implodeState='idle'; currentCubesOpacity=1.0;
+    // FIX: deze drie regels raken de Three.js-objecten van de kubus aan,
+    // die niet bestaan als WebGL niet beschikbaar was — zonder guard zou
+    // sluiten van het project dan blijven hangen en de rest van deze
+    // functie (reveal-animaties, terugscrollen) nooit uitvoeren.
+    if (webglAvailable) {
+        centralMatrix.rotation.set(0,0,0);
+        cubesArray.forEach(c=>{c.position.set(c.userData.originalX,c.userData.originalY,c.userData.originalZ);c.scale.set(1,1,1);});
+        outerCubes.children.forEach(p=>{p.position.set(p.userData.originalX,p.userData.originalY,p.userData.originalZ);p.scale.set(1,1,1);});
+    }
+    document.querySelectorAll('.reveal.in-view').forEach(el=>el.classList.remove('in-view'));
+    setTimeout(()=>initScrollReveal(),100);
+    splitTitle(document.getElementById('dyn-title'));
+    // Always land back on section 003 — never on a random scroll position
+    setTimeout(function(){
+        const sec = document.getElementById('projecten-sectie');
+        if(sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+}
+
+function animate(){
+    requestAnimationFrame(animate);
+    // FIX (bug 4 + 5 — performance/crash): geen werk verzetten als het
+    // tabblad op de achtergrond staat, de kubus buiten beeld is gescrold,
+    // of de WebGL-context net verloren is. Dit bespaart GPU/CPU die anders
+    // continu verspild wordt, en vermindert de kans op het GPU-geheugen-
+    // probleem dat tot context-verlies (zwarte achtergrond) leidt.
+    if (!pageVisible || !cubeInView || contextLost) return;
+    const et=clock.getElapsedTime(), theme=themes[currentThemeIndex];
+
+    bgMaterial.uniforms.u_colorMid.value.lerp(theme.cMid,LERP_SPEED);
+    bgMaterial.uniforms.u_colorLight.value.lerp(theme.cLight,LERP_SPEED);
+    bgMaterial.uniforms.u_time.value=et;
+    bgMaterial.uniforms.u_mouse.value.x+=(mouseVector.x-bgMaterial.uniforms.u_mouse.value.x)*LERP_SPEED;
+    bgMaterial.uniforms.u_mouse.value.y+=(mouseVector.y-bgMaterial.uniforms.u_mouse.value.y)*LERP_SPEED;
+    camera.position.z+=(targetCamZ-camera.position.z)*0.03;
+
+    if(implodeState==='imploding'){
+        const elapsed=performance.now()-implodeStartTime;
+        const raw=Math.min(elapsed/IMPLODE_DURATION,1);
+        const eased=easeInExpo(raw);
+        currentCubesOpacity=raw<0.55?1.0:Math.max(0,1.0-(raw-0.55)/0.38);
+        cubesArray.forEach(c=>{
+            c.position.x=c.userData.originalX*(1-eased);
+            c.position.y=c.userData.originalY*(1-eased);
+            c.position.z=c.userData.originalZ*(1-eased*0.55);
+            const s=Math.max(0,1-eased*1.18); c.scale.set(s,s,s);
+        });
+        outerCubes.children.forEach(p=>{
+            const pe=easeInQuart(raw);
+            p.position.x=p.userData.originalX*(1-pe*0.9);
+            p.position.y=p.userData.originalY*(1-pe*0.9);
+            p.position.z=p.userData.originalZ*(1-pe*0.9);
+            const ps=Math.max(0,1-pe*1.1); p.scale.set(ps,ps,ps);
+        });
+        centralMatrix.rotation.z=eased*Math.PI*2.3;
+        if(raw>=1){
+            implodeState='complete'; currentCubesOpacity=0;
+            cubesArray.forEach(c=>c.scale.set(0.0001,0.0001,0.0001));
+            implosionFlash.style.opacity='1';
+            setTimeout(()=>{implosionFlash.style.opacity='0';},220);
+            setTimeout(()=>{document.body.classList.add('text-reveal-active');},170);
+        }
+    }
+
+    light1.color.lerp(theme.specColor,LERP_SPEED);
+    mouseLight.color.lerp(theme.cLight,LERP_SPEED);
+    mouseLight.intensity=6.0*currentCubesOpacity;
+    logoMaterial.opacity=0;
+    matrixMaterials.forEach(m=>{
+        m.color.lerp(theme.matrixColors[m.userData.colorIndex],LERP_SPEED);
+        m.specular.lerp(theme.specColor,LERP_SPEED);
+        m.opacity=m.userData.baseOpacity*currentCubesOpacity;
+    });
+    particleMaterials.forEach(m=>{
+        m.color.lerp(theme.cMid,LERP_SPEED);
+        m.opacity=0.35*currentCubesOpacity;
+    });
+
+    if(implodeState==='idle'){
+        currentGlobalSpin+=(targetGlobalSpin-currentGlobalSpin)*0.02;
+        /* De kubus blijft altijd op dezelfde plek en draait vanzelf door —
+           geen cursor-gestuurde zoom/tilt meer. Verderop bestuurt de
+           cursor alleen nog de spotlight (mouseLight). */
+        centralMatrix.position.z=0;
+        centralMatrix.rotation.x=0;
+        centralMatrix.rotation.y=currentGlobalSpin+et*0.18;
+        centralMatrix.rotation.z=0;
+        outerCubes.rotation.y=currentGlobalSpin*0.5+et*0.09;
+        outerCubes.position.x=0;
+
+        raycaster.setFromCamera(mouseVector,camera);
+        const ip=new THREE.Vector3();
+        raycaster.ray.intersectPlane(interactionPlane,ip);
+        const li=ip.clone(); centralMatrix.worldToLocal(li);
+        mouseLight.position.x+=(li.x-mouseLight.position.x)*0.08;
+        mouseLight.position.y+=(li.y-mouseLight.position.y)*0.08;
+
+        cubesArray.forEach(c=>{
+            const t=et*0.45;
+            const wave=Math.sin(c.userData.originalX*1.6+c.userData.originalY*1.6+t)*0.04;
+            const micro=Math.cos(t*c.userData.idleSpeed+c.userData.idleOffset)*0.018;
+            c.userData.targetZ=c.userData.originalZ+wave+micro;
+            c.userData.targetScale=1.0;
+            const dist=c.position.distanceTo(li);
+            if(dist<0.85){const it=(0.85-dist)/0.85;c.userData.targetZ+=it*0.85;c.userData.targetScale=1.0+it*0.65;}
+            c.position.z+=(c.userData.targetZ-c.position.z)*0.05;
+            const ns=c.scale.x+(c.userData.targetScale-c.scale.x)*0.05;
+            c.scale.set(ns,ns,ns);
+        });
+    }
+    renderer.render(scene,camera);
+}
+
+function init(){
+    scene=new THREE.Scene();
+    /* Witte basis: witte mist + witte clear color zodat de 3D-kubus op een wit vlak staat */
+    scene.fog=new THREE.FogExp2(0xffffff,0.14);
+    camera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,0.1,100);
+    camera.position.z=targetCamZ;
+    // FIX: 'high-performance' dwingt de browser een GPU-switch te doen die
+    // op sommige systemen (virtuele machines, schakelbare grafische
+    // kaarten, stroombesparende modus) helemaal kan mislukken — en dat is
+    // precies de "Error creating WebGL context"-fout. Zonder deze hint
+    // pakt de browser gewoon de GPU die wél beschikbaar is.
+    renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setClearColor(0xffffff,1);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setSize(container.clientWidth,container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // FIX (bug 4 — glitches/zwarte achtergrond): bij langdurig gebruik kan
+    // de browser deze WebGL-context kwijtraken (vaak gecombineerd GPU-
+    // geheugengebruik van de meerdere canvassen op deze pagina). Zonder
+    // herstel-listener blijft de achtergrond daarna permanent zwart.
+    // preventDefault() op 'webglcontextlost' staat automatisch herstel
+    // door de browser toe; bij 'webglcontextrestored' zetten we de
+    // render-status terug aan.
+    renderer.domElement.addEventListener('webglcontextlost', function(e){
+        e.preventDefault();
+        contextLost = true;
+        console.warn('[Kubus-achtergrond] WebGL-context verloren — probeer te herstellen…');
+    }, false);
+    renderer.domElement.addEventListener('webglcontextrestored', function(){
+        contextLost = false;
+        bgMaterial.needsUpdate = true;
+        matrixMaterials.forEach(m => { m.needsUpdate = true; });
+        particleMaterials.forEach(m => { m.needsUpdate = true; });
+        renderer.setSize(container.clientWidth, container.clientHeight, true);
+        console.info('[Kubus-achtergrond] WebGL-context herstelt.');
+    }, false);
+
+    /* De donkere wolken-shader wordt niet meer aan de scene toegevoegd (wit vlak),
+       het materiaal blijft bestaan zodat animate() ongewijzigd kan blijven. */
+    bgMaterial=new THREE.ShaderMaterial({
+        vertexShader:bgVertexShader,fragmentShader:bgFragmentShader,
+        uniforms:{u_time:{value:0},u_mouse:{value:new THREE.Vector2(0,0)},
+                  u_colorMid:{value:themes[0].cMid.clone()},u_colorLight:{value:themes[0].cLight.clone()}},
+        depthWrite:false});
+    bgMesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2),bgMaterial);
+
+    scene.add(new THREE.AmbientLight(0xffffff,0.35));
+    light1=new THREE.DirectionalLight(themes[0].specColor.clone(),2.8);
+    light1.position.set(-5,4,4); scene.add(light1);
+    const light2=new THREE.DirectionalLight(0xffffff,1.5);
+    light2.position.set(4,5,3); scene.add(light2);
+
+    centralMatrix=new THREE.Group(); scene.add(centralMatrix);
+    mouseLight=new THREE.PointLight(themes[0].cLight.clone(),6.0,3.5);
+    mouseLight.position.set(0,0,1.2); centralMatrix.add(mouseLight);
+
+    logoMaterial=new THREE.MeshPhongMaterial({transparent:true,opacity:0,color:themes[0].cLight.clone(),depthWrite:false});
+    logoMesh=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.6),logoMaterial);
+    logoMesh.position.set(0,0,0.28); centralMatrix.add(logoMesh);
+
+    outerCubes=new THREE.Group();
+    for(let i=0;i<80;i++){
+        const sz=0.015+Math.random()*0.02;
+        const mat=new THREE.MeshPhongMaterial({color:themes[0].cMid.clone(),transparent:true,opacity:0.35});
+        particleMaterials.push(mat);
+        const mesh=new THREE.Mesh(new THREE.BoxGeometry(sz,sz,sz),mat);
+        const px=(Math.random()-0.5)*14,py=(Math.random()-0.5)*9,pz=(Math.random()-0.5)*6-2;
+        mesh.position.set(px,py,pz);
+        mesh.userData={originalX:px,originalY:py,originalZ:pz};
+        outerCubes.add(mesh);
+    }
+    scene.add(outerCubes);
+
+    for(let i=0;i<30;i++){
+        const ci=Math.floor(Math.random()*5),op=0.25+Math.random()*0.75;
+        const mat=new THREE.MeshPhongMaterial({
+            color:themes[0].matrixColors[ci].clone(),specular:themes[0].specColor.clone(),
+            shininess:50,flatShading:true,transparent:true,opacity:op});
+        mat.userData={colorIndex:ci,baseOpacity:op}; matrixMaterials.push(mat);
+    }
+
+    const cols=22,rows=22,depth=4,spacing=0.11,sz=0.091;
+    const sX=-((cols-1)*spacing)/2,sY=-((rows-1)*spacing)/2,sZ=-((depth-1)*spacing)/2;
+    const geo=new THREE.BoxGeometry(sz,sz,sz);
+    for(let x=0;x<cols;x++) for(let y=0;y<rows;y++) for(let z=0;z<depth;z++){
+        const mat=matrixMaterials[Math.floor(Math.random()*matrixMaterials.length)];
+        const mesh=new THREE.Mesh(geo,mat);
+        mesh.position.set(sX+x*spacing,sY+y*spacing,sZ+z*spacing);
+        mesh.userData={originalX:mesh.position.x,originalY:mesh.position.y,originalZ:mesh.position.z,
+            targetZ:mesh.position.z,targetScale:1.0,idleSpeed:0.6+Math.random()*1.1,idleOffset:Math.random()*Math.PI*2};
+        centralMatrix.add(mesh); cubesArray.push(mesh);
+    }
+
+    interactionPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+    raycaster=new THREE.Raycaster();
+    window.addEventListener('mousemove', onDocumentMouseMove, { passive: true });
+    // Escape sluit de projectpagina
+    window.addEventListener('keydown', function(e){
+        if(e.key === 'Escape') closeFullscreenMode();
+    });
+    document.getElementById('close-btn').addEventListener('click',closeFullscreenMode);
+}
+
+const resizeObs=new ResizeObserver(entries=>{
+    if (!webglAvailable) return; // FIX: camera/renderer bestaan niet als init() mislukte
+    for(let e of entries){
+        const w=e.contentRect.width,h=e.contentRect.height;
+        if(w>0&&h>0){camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,true);}
+    }
+});
+
+let webglAvailable = true;
+try {
+    init();
+    animate();
+} catch (err) {
+    // FIX (kritiek): zonder deze try/catch crasht een mislukte WebGL-
+    // context-aanmaak (oude browser, GPU-probleem, te veel actieve
+    // contexten, …) halverwege init(), waardoor ALLE code hieronder —
+    // inclusief setupMenu(), initScrollReveal() en initIntroAnimation() —
+    // nooit wordt uitgevoerd. Omdat .reveal-elementen standaard
+    // opacity:0 hebben totdat initScrollReveal() ze zichtbaar maakt,
+    // betekende dat in de praktijk: een vrijwel volledig lege pagina.
+    // Hiermee blijft de rest van de site altijd werken, ook zonder
+    // 3D-kubus.
+    webglAvailable = false;
+    console.error('[Kubus-achtergrond] Kon niet initialiseren — 3D-achtergrond wordt overgeslagen:', err);
+    document.body.classList.add('webgl-unavailable');
+}
+document.querySelector('.header-year')?.addEventListener('click', () => smoothScrollToY(0));
+setupMenu();
+setupInteractions();
+setupNextTrigger();
+setupProjectSidebar();
+splitTitle(document.getElementById('dyn-title'));
+initScrollReveal();
+initIntroAnimation();
+initTimeline();
+applyAccent(0);
+resizeObs.observe(matrixWindow);
+
+// FIX (bug 4 + 5): pauzeer de kubus-render-loop als het tabblad niet
+// zichtbaar is (bv. andere tab/geminimaliseerd) — bespaart GPU/CPU.
+document.addEventListener('visibilitychange', () => {
+    pageVisible = !document.hidden;
+});
+
+// FIX (bug 4 + 5): pauzeer de kubus-render-loop zodra hij ver buiten beeld
+// is gescrold (bv. wanneer de gebruiker in de "Over mij"-sectie zit).
+// Zonder dit blijft deze zware WebGL-scene altijd op volle snelheid
+// doorrenderen, ook als hij nergens te zien is.
+new IntersectionObserver((entries) => {
+    entries.forEach(entry => { cubeInView = entry.isIntersecting; });
+}, { threshold: 0 }).observe(matrixWindow);
+
+// FIX (bug 5 — "verdwijnende secties" sinds livegang): GSAP ScrollTrigger
+// berekent de pin-posities (kernwaarden-stack, over-mij horizontale
+// scroll) bij het laden van de pagina. Als webfonts of andere content
+// daarna nog de paginahoogte veranderen — wat op een live server door
+// netwerklatency vaker gebeurt dan lokaal — komen die posities niet meer
+// overeen met de werkelijke layout, waardoor gepinde secties verkeerd
+// (of helemaal niet) verschijnen. Een refresh ná het laden van fonts en
+// de volledige pagina lost dit op.
+if (window.ScrollTrigger) {
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => ScrollTrigger.refresh());
+    }
+}
+
+</script>
+
+<!-- ════════════════════════════════════════════════════════════
+     002 KERNWAARDEN — PINNED CARD STACK + SMOKE
+════════════════════════════════════════════════════════════ -->
+<script>
+(function initKernwaarden() {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const section = document.getElementById('kernwaarden-scroll');
+    const sticky  = document.getElementById('kw-sticky');
+    if (!section || !sticky) return;
+
+    // Nav-link "Kernwaarden" moet meteen op de zichtbare tekst landen,
+    // niet op het allereerste (nog onzichtbare) frame van de pin-animatie.
+    // FIX: een vast pixel-offset (was +420) is fragiel — dat getal klopte
+    // toevallig met de oude opbouw van de timeline, maar liep in de
+    // praktijk door tot voorbij het tekst-moment, richting de kaarten.
+    // We rekenen nu vanaf een GSAP-label dat precies markeert wanneer de
+    // tekst klaar is met invliegen, omgezet naar een echte scrollpositie
+    // via de werkelijke ScrollTrigger-grenzen. Dat blijft kloppen, ook als
+    // de timeline hieronder later verandert.
+    const kwNavLink = document.querySelector('a[href="#kernwaarden-scroll"]');
+    if (kwNavLink) {
+        kwNavLink.addEventListener('click', function(e){
+            e.preventDefault();
+            const st = tl.scrollTrigger;
+            if (!st || tl.labels.textVisible === undefined) {
+                smoothScrollToY(section.getBoundingClientRect().top + window.scrollY + 60, 1000);
+                return;
+            }
+            const labelFraction = tl.labels.textVisible / tl.duration();
+            const target = st.start + (st.end - st.start) * labelFraction + 30;
+            smoothScrollToY(target, 1000);
+        });
+    }
+
+    // Klik-to-advance: scroll alleen kan voor sommige muizen/trackpads
+    // te hard of te zacht aanvoelen om de kaarten goed te timen. Een
+    // klik op het gepinde vlak (of op de scroll-hint) stuurt de
+    // scrollpositie een stap verder — dit werkt náást scrollen, niet
+    // in plaats daarvan, dus iedereen kan de manier kiezen die het
+    // prettigst voelt.
+    sticky.addEventListener('click', function(e){
+        if (e.target.closest('a, button')) return;
+        smoothScrollToY(window.scrollY + 1400, 700);
+    });
+
+    const stackRotations = [-3, 4, -2, 2];
+
+    // Start cards off-screen (alternating sides)
+    gsap.set('.kw-card:nth-child(4)', { x: '150vw', rotate: 25 });
+    gsap.set('.kw-card:nth-child(3)', { x: '-150vw', rotate: -25 });
+    gsap.set('.kw-card:nth-child(2)', { x: '150vw', rotate: 25 });
+    gsap.set('.kw-card:nth-child(1)', { x: '-150vw', rotate: -25 });
+
+    const tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: section,
+            start:   'top top',
+            end:     '+=4200',
+            pin:     true,
+            scrub:   1,
+            anticipatePin: 1
+        }
+    });
+
+    // STAP 1 — intro tekst omhoog, snel
+    tl.fromTo('.kw-intro-text',
+        { opacity: 0, y: 55 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }
+    );
+    // Markeert het moment waarop de tekst volledig zichtbaar is — de
+    // "Kernwaarden"-navigatielink hierboven landt altijd precies hier.
+    tl.addLabel('textVisible');
+    tl.to({}, { duration: 0.25 });
+
+    // STAP 2 — kaarten om en om, vlotter dan voorheen
+    tl.to('.kw-card:nth-child(4)', { x: 0, rotate: stackRotations[3], duration: 0.7, ease: 'power3.out' });
+    tl.to('.kw-card:nth-child(3)', { x: 0, rotate: stackRotations[2], duration: 0.7, ease: 'power3.out' }, '-=0.45');
+    tl.to('.kw-card:nth-child(2)', { x: 0, rotate: stackRotations[1], duration: 0.7, ease: 'power3.out' }, '-=0.45');
+    tl.to('.kw-card:nth-child(1)', { x: 0, rotate: stackRotations[0], duration: 0.7, ease: 'power3.out' }, '-=0.45');
+
+    // Rook verschijnt als alle kaarten er zijn — GEEN dimming van achtergrond
+    tl.to('.kw-smoke-canvas', { opacity: 0.85, duration: 0.7 }, '-=0.2');
+
+    tl.to({}, { duration: 1.4 });
+
+    // STAP 3 — kaarten vliegen omhoog weg
+    tl.to('.kw-card:nth-child(1)', { y: '-130vh', rotate: -15, duration: 0.85, ease: 'power2.in' });
+    tl.to('.kw-card:nth-child(2)', { y: '-130vh', rotate: 12,  duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.to('.kw-card:nth-child(3)', { y: '-130vh', rotate: -10, duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.to('.kw-card:nth-child(4)', { y: '-130vh', rotate: 8,   duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.to('.kw-intro-text', { opacity: 0, y: -36, duration: 0.5 }, '-=0.7');
+
+
+    // ── SMOKE: grote, trage pluimen van boven naar beneden ─────
+    document.querySelectorAll('.kw-card').forEach((card, index) => {
+        const canvas = card.querySelector('.kw-smoke-canvas');
+        const ctx    = canvas.getContext('2d');
+        let mouseX = -2000, mouseY = -2000;
+        const plumes = [];
+
+        function resize() {
+            canvas.width  = card.clientWidth;
+            canvas.height = card.clientHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        class Plume {
+            constructor(scattered) {
+                this.spawn(scattered);
+            }
+
+            spawn(scattered) {
+                // Spread horizontally across the top
+                this.x     = (Math.random() * 1.4 - 0.2) * canvas.width;
+                // If scattered (initial fill), start anywhere in height
+                this.y     = scattered ? Math.random() * canvas.height : -150;
+                // Big radius: 90–190px
+                this.r     = 90 + Math.random() * 100;
+                // Very slow downward drift
+                this.vy    = 0.12 + Math.random() * 0.18;
+                this.vx    = (Math.random() - 0.5) * 0.12;
+                // Gentle side-to-side wobble
+                this.phase = Math.random() * Math.PI * 2;
+                this.freq  = 0.0015 + Math.random() * 0.002;
+                // Low alpha — deep, layered look
+                this.alpha = 0.03 + Math.random() * 0.045;
+            }
+
+            update() {
+                this.phase += this.freq;
+                this.x += this.vx + Math.sin(this.phase) * 0.35;
+                this.y += this.vy;
+
+                // Soft mouse repulsion
+                const dx   = this.x - mouseX;
+                const dy   = this.y - mouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const rep  = 170;
+                if (dist < rep && dist > 0.5) {
+                    const f = (rep - dist) / rep;
+                    this.x += (dx / dist) * f * 3.5;
+                    this.y += (dy / dist) * f * 1.5;
+                }
+
+                if (this.y > canvas.height + 180) this.spawn(false);
+            }
+
+            draw() {
+                const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+                g.addColorStop(0,    `rgba(28, 28, 31, ${this.alpha})`);
+                g.addColorStop(0.40, `rgba(48, 48, 52, ${this.alpha * 0.30})`);
+                g.addColorStop(1,    'rgba(255,255,255,0)');
+                ctx.beginPath();
+                ctx.fillStyle = g;
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 10 plumes per kaart — groot en rustig
+        for (let i = 0; i < 10; i++) plumes.push(new Plume(true));
+
+        (function loop() {
+            requestAnimationFrame(loop);
+            // FIX (bug 5 — zware scripts): sla het redraw-werk over zolang
+            // het tabblad niet zichtbaar is. Er draaien hier 4 van deze
+            // lussen tegelijk (één per kaart), die anders altijd op volle
+            // snelheid blijven tekenen, ook op de achtergrond.
+            if (document.hidden) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            plumes.forEach(p => { p.update(); p.draw(); });
+        })();
+
+        card.addEventListener('mousemove', e => {
+            const r   = card.getBoundingClientRect();
+            mouseX    = e.clientX - r.left;
+            mouseY    = e.clientY - r.top;
+            const nx  = mouseX - r.width  / 2;
+            const ny  = mouseY - r.height / 2;
+            const fac = 12;
+            gsap.to(card, {
+                rotateX:   -ny / r.height * fac,
+                rotateY:   (nx / r.width  * fac) + stackRotations[index],
+                boxShadow: '0 40px 80px rgba(0,0,0,0.12)',
+                duration:  0.3,
+                ease:      'power2.out'
+            });
+        });
+
+        card.addEventListener('mouseleave', () => {
+            mouseX = mouseY = -2000;
+            gsap.to(card, {
+                rotateX:   0,
+                rotateY:   0,
+                rotate:    stackRotations[index],
+                boxShadow: '0 30px 70px rgba(0,0,0,0.07)',
+                duration:  0.5,
+                ease:      'power2.out'
+            });
+        });
+    });
+})();
+</script>
+
+<!-- ════════════════════════════════════════════════════════════
+     004 OVER MIJ — Horizontale kaartscroll + barrel effect
+════════════════════════════════════════════════════════════ -->
+<script>
+(function initOverMij() {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+        console.warn('GSAP not loaded'); return;
+    }
+    gsap.registerPlugin(ScrollTrigger);
+
+    const masterTl = gsap.timeline({
+        scrollTrigger: {
+            trigger:             '.om-master-track',
+            start:               'top top',
+            end:                 'bottom bottom',
+            scrub:               1.4,
+            invalidateOnRefresh: true,
+        }
+    });
+
+    /* ── Horizontal card scroll (linear — 6 × 100vw slides) ─────
+     *  scrub: 1.4 creates the natural "decelerate into snap" feel
+     *  at each card position without extra keyframes.
+     * ─────────────────────────────────────────────────────────── */
+    masterTl
+        .to('.om-cards-track', {
+            x: () => -(document.querySelector('.om-cards-track').scrollWidth - window.innerWidth),
+            duration: 9,
+            ease: 'none'
+        }, 0)
+        /* Editorial bg parallaxes at 7% of card speed — subtle depth */
+        .to('.om-editorial-bg', {
+            x: () => -(document.querySelector('.om-cards-track').scrollWidth - window.innerWidth) * 0.07,
+            duration: 9,
+            ease: 'none'
+        }, 0)
+        /* Progress bar fills as cards scroll */
+        .to('.om-progress-fill', {
+            width: '100%',
+            duration: 9,
+            ease: 'none'
+        }, 0)
+        /* Scroll hint fades out as user starts scrolling through cards */
+        .to('.om-scroll-hint', {
+            opacity: 0,
+            duration: 0.8,
+            ease: 'power2.in'
+        }, 0.8);
+
+    /* ── Barrel / cylinder distortion — runs every frame ────────
+     *
+     *  nx  = card center normalised: -1 (far left) → 0 (center) → +1 (far right)
+     *  sf  = sin-curve: 0 at center, ±1 at ±π/3.6 — ensures smooth roll
+     *
+     *  Only .om-card-wrapper rotates. Text inside stays perpendicular,
+     *  so every word stays readable regardless of viewport position.
+     *
+     *  rotateY:  ±16° (was ±24° — reduced for legibility and calm)
+     *  Z-offset: center boosted +60px, edges pushed back ~300px
+     * ─────────────────────────────────────────────────────────── */
+    // FIX (bug 5 — haperingen): cache de kaarten één keer in plaats van ze
+    // elk frame opnieuw met querySelectorAll op te zoeken.
+    const cardWrappers = document.querySelectorAll('.om-card-wrapper');
+    function omDistortion() {
+        // FIX (bug 5 — onnodige re-renders/haperingen): deze functie deed
+        // voorheen op élk animatieframe van de héle pagina-levensduur een
+        // layout-read (getBoundingClientRect) per kaart, ook wanneer deze
+        // sectie niet eens in beeld was. Dat dwingt continu een browser-
+        // reflow af en was een directe oorzaak van haperend scrollen
+        // elders op de pagina. Nu: alleen werk verzetten zolang deze
+        // sectie daadwerkelijk gepind/actief in beeld is.
+        if (!masterTl.scrollTrigger || !masterTl.scrollTrigger.isActive) return;
+        const cx = window.innerWidth / 2;
+        cardWrappers.forEach(w => {
+            const r  = w.getBoundingClientRect();
+            const nx = Math.max(-1.6, Math.min(1.6, (r.left + r.width / 2 - cx) / cx));
+            const sf = Math.sin(nx * (Math.PI / 3.6));
+            w.style.transform =
+                `translate3d(0,0,${(sf * sf - 1) * 300 + 60}px) rotateY(${sf * -16}deg)`;
+        });
+    }
+    gsap.ticker.add(omDistortion);
+
+    /* ── Email copy bubble ──────────────────────────────────── */
+    const emailBtn = document.getElementById('om-email-copy');
+    const copyTip  = document.getElementById('om-copy-tip');
+
+    if (emailBtn && copyTip) {
+        // Element verplaatsen naar <body>: binnen de 3D-kaart-hiërarchie staat
+        // een CSS transform op een ancestor, wat een nieuw containing block
+        // voor position:fixed zou creëren — dat breekt het cursor-volg-effect.
+        document.body.appendChild(copyTip);
+        const cardTrigger = emailBtn.closest('.om-bio-card') || emailBtn;
+        cardTrigger.addEventListener('mousemove', (e) => {
+            copyTip.style.left = e.clientX + 'px';
+            copyTip.style.top  = e.clientY + 'px';
+        });
+        cardTrigger.addEventListener('mouseenter', () => copyTip.classList.add('om-tip-visible'));
+        cardTrigger.addEventListener('mouseleave', () => copyTip.classList.remove('om-tip-visible'));
+
+        function doCopy() {
+            const confirm = () => {
+                copyTip.textContent = 'Copied!';
+                copyTip.classList.add('om-copied');
+                setTimeout(() => {
+                    copyTip.textContent = 'Copy email';
+                    copyTip.classList.remove('om-copied');
+                }, 2200);
+            };
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText('hidde@vermaas.net')
+                    .then(confirm)
+                    .catch(() => { fallbackCopy(); confirm(); });
+            } else {
+                fallbackCopy(); confirm();
+            }
+        }
+        function fallbackCopy() {
+            const ta = document.createElement('textarea');
+            ta.value = 'hidde@vermaas.net';
+            ta.style.cssText = 'position:fixed;opacity:0';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            try { document.execCommand('copy'); } catch(e){}
+            document.body.removeChild(ta);
+        }
+        emailBtn.addEventListener('click', doCopy);
+        emailBtn.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doCopy(); }
+        });
+    }
+})();
+</script>
+<!-- ════════════════════════════════════════════════════════════
+     003B — 3D PROJECT-STAGES (Macbook / iPhone / Magazine)
+     Losse, moderne ES-module build van Three.js (r160) + addons.
+     Elke scène draait in zijn eigen container i.p.v. fullscreen,
+     wordt lazy geïnitialiseerd zodra het project actief wordt, en
+     pauzeert zijn render-loop zodra hij niet zichtbaar is.
+════════════════════════════════════════════════════════════ -->
+<script type="module">
+import * as THREE          from 'three';
+import { GLTFLoader }      from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ── Gedeelde helpers ──────────────────────────────────────── */
+function damp(current, target, lambda, dt){ return current + (target-current)*(1-Math.exp(-lambda*dt)); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function deepClone(src){
+    const c = src.clone(true);
+    c.traverse(n=>{
+        if(!n.isMesh) return;
+        n.material = Array.isArray(n.material) ? n.material.map(m=>m.clone()) : n.material.clone();
+    });
+    return c;
+}
+function setStageProgress(barEl, pct){
+    if (barEl) barEl.style.width = Math.min(100,pct) + '%';
+}
+function hideStageLoading(loadingEl){
+    if (!loadingEl) return;
+    loadingEl.classList.add('out');
+    setTimeout(()=>{ loadingEl.style.display = 'none'; }, 600);
+}
+function showStageError(loadingEl, msg){
+    if (!loadingEl) return;
+    const span = loadingEl.querySelector('span');
+    if (span) span.textContent = msg;
+}
+function isNarrowContainer(container){ return container.clientWidth < 480; }
+
+/* ════════════════════════════════════════════════════════════
+   STAGE 1 — VCS — MacBook showcase
+════════════════════════════════════════════════════════════ */
+function initMacbookStage(canvas, container, loadingEl, barEl){
+    const CFG = {
+        MODEL_PATH: 'Macbook.glb',
+        PHOTOS: ['Images/VCShome.png', 'Images/VCSprogramma.png', 'Images/VCSteam.png'],
+        FLIP_SCREEN_TEXTURE_V: true,
+        SCALE: 0.5, CAM_FOV: 40, CAM_DIST_MULT: 0.74,
+        LOCAL_ORBIT: [
+            { radius: 4.0, speed:  0.09, phase: 0.0 },
+            { radius: 4.6, speed: -0.07, phase: 2.3 },
+            { radius: 3.6, speed:  0.08, phase: 4.5 },
+        ],
+        HOME_GAP_BUFFER: 6,
+        TUMBLE_SPEED: [
+            { x:  0.04, y:  0.03, z: -0.02 },
+            { x: -0.02, y:  0.04, z:  0.03 },
+            { x:  0.03, y: -0.03, z:  0.02 },
+        ],
+        START_ROT: [
+            { x:  0.4,  y:  1.1,  z: -0.3 },
+            { x: -0.6,  y:  2.0,  z:  0.5 },
+            { x:  0.2,  y: -1.4,  z:  0.7 },
+        ],
+        TARGET_HOVER_ROT: [
+            { x: 0.0, y:  0.22, z: 0.0 },
+            { x: 0.0, y:  0.00, z: 0.0 },
+            { x: 0.0, y: -0.22, z: 0.0 },
+        ],
+        DRIFT_AMP: 0.6, DRIFT_SPEED: 0.2, FLOAT_AMP: 0.9, FLOAT_SPEED: 0.38,
+        HOVER_SCALE_MULT: 1.3, HOVER_MOVE_DIST: 4, HOVER_DAMPING: 4.5, HOVER_ROT_DAMPING: 2.2,
+        SWAY_PIXELS_TO_WORLD: 0.035, SWAY_MAX: 5, SWAY_DAMPING: 5,
+        SCREEN_ASPECT: 1.6, SCROLL_DURATION: 8, SCROLL_PAUSE: 1.0, EXPOSURE: 1.15,
+    };
+
+    // FIX (kritiek): als WebGL hier niet beschikbaar is, ving dat op met
+    // een duidelijke melding i.p.v. een onafgehandelde fout die het
+    // laad-scherm voor altijd op "MacBooks laden…" laat staan én
+    // ensureStageInit()/update3DStage() voor de andere stages kapot maakt.
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    } catch (err) {
+        console.error('[MacbookStage] WebGL niet beschikbaar:', err);
+        showStageError(loadingEl, '3D-preview niet beschikbaar in deze browser');
+        return { setActive(){} };
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isNarrowContainer(container) ? 1.5 : 2));
+    renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = CFG.EXPOSURE;
+    renderer.outputColorSpace    = THREE.SRGBColorSpace;
+
+    // FIX (bug 4 — glitches/zwarte achtergrond): zonder deze listeners
+    // blijft dit canvas permanent zwart/kapot als de browser de WebGL-
+    // context kwijtraakt (vier WebGL-canvassen tegelijk op deze pagina
+    // vergroten die kans). preventDefault() staat automatisch herstel toe.
+    let stageContextLost = false;
+    renderer.domElement.addEventListener('webglcontextlost', function(e){
+        e.preventDefault();
+        stageContextLost = true;
+        console.warn('[MacbookStage] WebGL-context verloren — probeer te herstellen…');
+    }, false);
+    renderer.domElement.addEventListener('webglcontextrestored', function(){
+        stageContextLost = false;
+        onResize();
+    }, false);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(CFG.CAM_FOV, 1, 0.1, 5000);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // FIX (bug 4 — GPU-geheugen): PMREMGenerator houdt interne framebuffers
+    // vast die niet meer nodig zijn zodra de omgevingstextuur gebakken is.
+    // Nooit disposen liet dit per 3D-stage GPU-geheugen lekken, wat bijdraagt
+    // aan het context-verlies-probleem (bug 4).
+    pmrem.dispose();
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key  = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(14, 28, 22); scene.add(key);
+    const fill = new THREE.DirectionalLight(0xfbfbff, 1.0); fill.position.set(-16, 10, 18); scene.add(fill);
+    const rim  = new THREE.DirectionalLight(0xfff6e8, 0.55); rim.position.set(0, 14, -28); scene.add(rim);
+
+    function applyScrollingTexture(mesh, photoPath){
+        new THREE.TextureLoader().load(
+            photoPath,
+            (tex)=>{
+                tex.flipY      = CFG.FLIP_SCREEN_TEXTURE_V;
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+                const img = tex.image;
+                const imgAsp = img.naturalWidth / img.naturalHeight;
+                let repeatY = imgAsp / CFG.SCREEN_ASPECT;
+                const scrollable = repeatY < 0.98;
+                repeatY = Math.min(repeatY, 1);
+                tex.repeat.set(1, repeatY);
+                const topOffsetY = scrollable ? (1 - repeatY) : 0;
+                tex.offset.set(0, topOffsetY);
+                tex.needsUpdate = true;
+                mesh.material = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+                if (scrollable && window.gsap) {
+                    window.gsap.to(tex.offset, { y: 0, duration: CFG.SCROLL_DURATION, delay: CFG.SCROLL_PAUSE, ease: 'sine.inOut', repeat: -1, yoyo: true, repeatDelay: CFG.SCROLL_PAUSE });
+                }
+            },
+            undefined,
+            (err)=>{ mesh.material = new THREE.MeshBasicMaterial({ color: 0xff2244 }); console.error('[MacbookStage] foto kon niet laden:', photoPath, err); }
+        );
+    }
+
+    function findScreenMesh(macScene){
+        let found = null;
+        macScene.traverse(node=>{
+            if (found || !node.isMesh) return;
+            const mat = Array.isArray(node.material) ? node.material[0] : node.material;
+            const isEmissive = mat?.emissive && (mat.emissive.r > 0.5 || mat.emissive.g > 0.5 || mat.emissive.b > 0.5);
+            const nm = node.name.toLowerCase();
+            const mm = (mat?.name || '').toLowerCase();
+            const hasKeyword = ['screen','display','glass','monitor','lcd'].some(k => nm.includes(k) || mm.includes(k));
+            const isExact = node.name === 'Object_123';
+            if (isEmissive || hasKeyword || isExact) found = node;
+        });
+        return found;
+    }
+
+    let rawCenter = new THREE.Vector3();
+    const instances = [];
+
+    function spawnMacBook(gltfScene, homeX, photoPath, idx){
+        const mac = deepClone(gltfScene);
+        mac.position.set(-rawCenter.x, -rawCenter.y, -rawCenter.z);
+        mac.traverse(n => { if (n.isMesh) n.userData.macIndex = idx; });
+        const pivot = new THREE.Group();
+        pivot.add(mac);
+        pivot.scale.setScalar(CFG.SCALE);
+        scene.add(pivot);
+        const screen = findScreenMesh(mac);
+        if (screen) applyScrollingTexture(screen, photoPath);
+        const r = CFG.START_ROT[idx];
+        const o = CFG.LOCAL_ORBIT[idx];
+        // FIX (hover z-layer): meshes van déze MacBook, zodat we bij hover
+        // renderOrder/depthTest kunnen omzetten zonder de hele scene te
+        // moeten doorlopen.
+        const meshes = [];
+        pivot.traverse(n => { if (n.isMesh) meshes.push(n); });
+        instances.push({
+            pivot, index: idx,
+            home: { x: homeX, z: 0 },
+            rot: { x: r.x, y: r.y, z: r.z },
+            tumbleSpeed: CFG.TUMBLE_SPEED[idx],
+            orbit: o,
+            floatPhase: idx * 2.4,
+            driftPhaseX: idx * 1.8 + 0.7,
+            driftPhaseZ: idx * 3.1 + 1.4,
+            scaleMult: 1, closeAmount: 0,
+            sway: new THREE.Vector3(), swayTarget: new THREE.Vector3(),
+            meshes, onTop: false,
+        });
+    }
+
+    let perMacRadius = 10, maxLocalOrbit = 5, homeGap = 30;
+    function computeHomeGap(){
+        const maxReach = perMacRadius + maxLocalOrbit + CFG.DRIFT_AMP;
+        // x0.6: dichter bij elkaar zodat ze bij hover-zoom niet half buiten beeld vallen
+        homeGap = (2 * maxReach + CFG.HOME_GAP_BUFFER) * 0.6;
+    }
+    function fitCameraFixed(){
+        const vFov = CFG.CAM_FOV * Math.PI / 180;
+        const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+        const maxReach = perMacRadius + maxLocalOrbit + CFG.DRIFT_AMP;
+        const halfSpan = homeGap + maxReach;
+        // Extra marge: een gehoverde MacBook wordt groter én komt dichterbij,
+        // dus de camera moet daar al rekening mee houden, niet pas erna.
+        // FIX: was HOVER_MOVE_DIST * 0.5 — de camera reserveerde maar de
+        // helft van de werkelijke pull-afstand, waardoor het model bij
+        // hover dichterbij kwam dan waarvoor was geframed (je zag dan de
+        // binnenkant/scharnier i.p.v. het scherm).
+        const hoverPad = perMacRadius * (CFG.HOVER_SCALE_MULT - 1) + CFG.HOVER_MOVE_DIST;
+        const distForHeight = (perMacRadius + CFG.FLOAT_AMP + hoverPad) / Math.tan(vFov / 2);
+        const distForWidth  = (halfSpan + hoverPad) / Math.tan(hFov / 2);
+        const dist = Math.max(distForHeight, distForWidth) * CFG.CAM_DIST_MULT;
+        camera.position.set(0, perMacRadius * 0.12, dist);
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
+    }
+
+    setStageProgress(barEl, 5);
+    new GLTFLoader().load(
+        CFG.MODEL_PATH,
+        (gltf) => {
+            setStageProgress(barEl, 80);
+            const box = new THREE.Box3().setFromObject(gltf.scene);
+            rawCenter = box.getCenter(new THREE.Vector3());
+            perMacRadius  = box.getBoundingSphere(new THREE.Sphere()).radius * CFG.SCALE;
+            maxLocalOrbit = Math.max(...CFG.LOCAL_ORBIT.map(o => o.radius));
+            computeHomeGap();
+            spawnMacBook(gltf.scene, -homeGap, CFG.PHOTOS[0], 0);
+            spawnMacBook(gltf.scene,  0,       CFG.PHOTOS[1], 1);
+            spawnMacBook(gltf.scene,  homeGap, CFG.PHOTOS[2], 2);
+            onResize();
+            setStageProgress(barEl, 100);
+            hideStageLoading(loadingEl);
+        },
+        (xhr) => { if (xhr.total) setStageProgress(barEl, (xhr.loaded / xhr.total) * 75); },
+        (err) => { console.error('[MacbookStage] model kon niet laden:', err); showStageError(loadingEl, 'Kon model niet laden'); }
+    );
+
+    /* ── interactie & render-loop ── */
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2(-10, -10);
+    let hoveredIndex = -1, grabbedIndex = -1, grabStartX = 0, grabStartY = 0;
+
+    function macIndexUnderPointer(){
+        if (!instances.length) return -1;
+        raycaster.setFromCamera(pointerNDC, camera);
+        const hits = raycaster.intersectObjects(instances.map(i => i.pivot), true);
+        return hits.length ? (hits[0].object.userData.macIndex ?? -1) : -1;
+    }
+    function setNDCFromEvent(e){
+        const r = canvas.getBoundingClientRect();
+        pointerNDC.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
+        pointerNDC.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
+    }
+    let lastRaycastT = 0;
+    canvas.addEventListener('pointermove', (e) => {
+        setNDCFromEvent(e);
+        const now = performance.now();
+        if (now - lastRaycastT < 40) return;
+        lastRaycastT = now;
+        hoveredIndex = macIndexUnderPointer();
+    });
+    canvas.addEventListener('pointerleave', () => { pointerNDC.set(-10, -10); hoveredIndex = -1; });
+    canvas.addEventListener('pointerdown', (e) => {
+        setNDCFromEvent(e);
+        hoveredIndex = macIndexUnderPointer();
+        if (hoveredIndex !== -1) {
+            grabbedIndex = hoveredIndex;
+            grabStartX = e.clientX; grabStartY = e.clientY;
+            canvas.classList.add('is-grabbing');
+        }
+    });
+    window.addEventListener('pointermove', (e) => {
+        if (grabbedIndex === -1) return;
+        const dx = e.clientX - grabStartX, dy = e.clientY - grabStartY;
+        const inst = instances[grabbedIndex];
+        inst.swayTarget.x = clamp(dx * CFG.SWAY_PIXELS_TO_WORLD,  -CFG.SWAY_MAX, CFG.SWAY_MAX);
+        inst.swayTarget.y = clamp(-dy * CFG.SWAY_PIXELS_TO_WORLD, -CFG.SWAY_MAX, CFG.SWAY_MAX);
+    });
+    function releaseGrab(){
+        if (grabbedIndex !== -1) instances[grabbedIndex].swayTarget.set(0, 0, 0);
+        grabbedIndex = -1;
+        canvas.classList.remove('is-grabbing');
+    }
+    window.addEventListener('pointerup', releaseGrab);
+    window.addEventListener('pointercancel', releaseGrab);
+
+    let clock = 0, active = false, rafId = null;
+    function frame(){
+        rafId = requestAnimationFrame(frame);
+        if (!active || stageContextLost) return;
+        const dt = 1 / 60; clock += dt;
+        instances.forEach((inst, i) => {
+            const isGrabbed = (grabbedIndex === i);
+            const isActive   = isGrabbed || (hoveredIndex === i);
+            // FIX (hover z-layer): forceer de gehoverde/gegrabte MacBook
+            // altijd bovenop de andere twee — onafhankelijk van de
+            // werkelijke camera-afstand, die elkaar tijdens het
+            // schalen/dichterbij-komen anders soms verkeerd overlappen.
+            // Alleen omschakelen bij een statusverandering, niet elk frame.
+            if (isActive !== inst.onTop) {
+                inst.onTop = isActive;
+                inst.meshes.forEach(m => {
+                    m.renderOrder = isActive ? 999 : 0;
+                    const mats = Array.isArray(m.material) ? m.material : [m.material];
+                    mats.forEach(mat => { if (mat) mat.depthTest = !isActive; });
+                });
+            }
+            if (isActive) {
+                const targetRot = CFG.TARGET_HOVER_ROT[inst.index];
+                inst.rot.x = damp(inst.rot.x, targetRot.x, CFG.HOVER_ROT_DAMPING, dt);
+                inst.rot.y = damp(inst.rot.y, targetRot.y, CFG.HOVER_ROT_DAMPING, dt);
+                inst.rot.z = damp(inst.rot.z, targetRot.z, CFG.HOVER_ROT_DAMPING, dt);
+            } else {
+                inst.rot.x += inst.tumbleSpeed.x * dt;
+                inst.rot.y += inst.tumbleSpeed.y * dt;
+                inst.rot.z += inst.tumbleSpeed.z * dt;
+            }
+            inst.pivot.rotation.set(inst.rot.x, inst.rot.y, inst.rot.z);
+            const targetScale = isActive ? CFG.HOVER_SCALE_MULT : 1;
+            inst.scaleMult = damp(inst.scaleMult, targetScale, CFG.HOVER_DAMPING, dt);
+            inst.pivot.scale.setScalar(CFG.SCALE * inst.scaleMult);
+            const orbitAngle = clock * inst.orbit.speed + inst.orbit.phase;
+            const orbitX = Math.cos(orbitAngle) * inst.orbit.radius;
+            const orbitZ = Math.sin(orbitAngle) * inst.orbit.radius;
+            const bobY   = Math.sin(clock * CFG.FLOAT_SPEED + inst.floatPhase) * CFG.FLOAT_AMP;
+            const driftX = Math.sin(clock * CFG.DRIFT_SPEED + inst.driftPhaseX) * CFG.DRIFT_AMP;
+            const driftZ = Math.cos(clock * CFG.DRIFT_SPEED + inst.driftPhaseZ) * CFG.DRIFT_AMP;
+            const anchor = new THREE.Vector3(inst.home.x + orbitX + driftX, bobY, inst.home.z + orbitZ + driftZ);
+            const targetClose = isActive ? CFG.HOVER_MOVE_DIST : 0;
+            inst.closeAmount = damp(inst.closeAmount, targetClose, CFG.HOVER_DAMPING, dt);
+            if (inst.closeAmount > 0.001) {
+                const toCam = camera.position.clone().sub(anchor);
+                const fullDist = toCam.length();
+                const dir = toCam.normalize();
+                // FIX: begrens hoe dicht een gehoverde MacBook naar de
+                // camera mag bewegen — nooit verder dan 55% van de
+                // afstand die er op dat moment nog is. Zonder deze grens
+                // kon de combinatie van schaal + pull het model tot vlak
+                // vóór (of voorbij) de camera duwen, waardoor je per
+                // ongeluk de binnenkant van het model zag.
+                const safeClose = Math.min(inst.closeAmount, fullDist * 0.55);
+                anchor.addScaledVector(dir, safeClose);
+            }
+            inst.sway.x = damp(inst.sway.x, inst.swayTarget.x, CFG.SWAY_DAMPING, dt);
+            inst.sway.y = damp(inst.sway.y, inst.swayTarget.y, CFG.SWAY_DAMPING, dt);
+            anchor.add(inst.sway);
+            inst.pivot.position.copy(anchor);
+        });
+        renderer.render(scene, camera);
+    }
+    rafId = requestAnimationFrame(frame);
+
+    let resizeTimer = null;
+    function onResize(){
+        const w = container.clientWidth, h = container.clientHeight;
+        if (!w || !h) return;
+        camera.aspect = w / h;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isNarrowContainer(container) ? 1.5 : 2));
+        renderer.setSize(w, h, false);
+        if (homeGap) fitCameraFixed();
+    }
+    const ro = new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(onResize, 100); });
+    ro.observe(container);
+    onResize();
+
+    return { setActive(v){ active = v; } };
+}
+
+/* ════════════════════════════════════════════════════════════
+   STAGE 2 — Green Up — iPhone showcase
+════════════════════════════════════════════════════════════ */
+function initIphoneStage(canvas, container, loadingEl, barEl){
+    const CFG = {
+        itemCount: 3,
+        modelPath: 'Iphone17.glb',
+        photoPaths: ['Images/Greenup1.png', 'Images/Greenup2.png', 'Images/Greenup3.png'],
+        contentMaterialName: 'OLED',
+        contentMaterialFallbackRegex: /oled|screen|display|lcd|page|cover/i,
+        screenAspect: 0.461,
+        flipTextureV: true,
+        targetLongestDim: 2.85, // was 2.4 — iPhones stonden te klein, dit maakt ze duidelijk groter
+        localOrbitRadius: 0.35,
+        driftAmplitude: 0.28,
+        homeSafetyMargin: 1.0,
+        cameraFovDeg: 32,
+        camDistMult: 1.18,
+        wobbleAmpRange: [0.06, 0.16],
+        wobbleFreqRange: [0.15, 0.35],
+        raycastIntervalMs: 40,
+        hoverScaleMult: 2.1,
+        hoverPullAmount: 1.0,
+        hoverTweenDuration: 0.45,
+        leaveTweenDuration: 0.5,
+        autoScrollDuration: 5,
+        maxSwayAngleDeg: 22,
+        dampingSway: 8,
+        fallbackColor: '#22c55e',
+    };
+
+    // FIX (kritiek): zie toelichting bij de MacBook-stage hierboven.
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    } catch (err) {
+        console.error('[IphoneStage] WebGL niet beschikbaar:', err);
+        showStageError(loadingEl, '3D-preview niet beschikbaar in deze browser');
+        return { setActive(){} };
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isNarrowContainer(container) ? 1.5 : 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+
+    // FIX (bug 4 — glitches/zwarte achtergrond): zie toelichting bij de
+    // MacBook-stage hierboven — dezelfde context-verlies-bescherming.
+    let stageContextLost = false;
+    renderer.domElement.addEventListener('webglcontextlost', function(e){
+        e.preventDefault();
+        stageContextLost = true;
+        console.warn('[IphoneStage] WebGL-context verloren — probeer te herstellen…');
+    }, false);
+    renderer.domElement.addEventListener('webglcontextrestored', function(){
+        stageContextLost = false;
+        onResize();
+    }, false);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(CFG.cameraFovDeg, 1, 0.1, 100);
+    camera.position.set(0, 0, 12);
+    camera.lookAt(0, 0, 0);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // FIX (bug 4 — GPU-geheugen): PMREMGenerator houdt interne framebuffers
+    // vast die niet meer nodig zijn zodra de omgevingstextuur gebakken is.
+    // Nooit disposen liet dit per 3D-stage GPU-geheugen lekken, wat bijdraagt
+    // aan het context-verlies-probleem (bug 4).
+    pmrem.dispose();
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xcfd6e6, 0.9));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.1); keyLight.position.set(3, 5, 4); scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x88aaff, 0.35); rimLight.position.set(-4, -2, -3); scene.add(rimLight);
+
+    function finalizeTexture(tex, repeatY, scrollable){
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.flipY = CFG.flipTextureV;
+        tex.center.set(0.5, 0.5);
+        tex.rotation = Math.PI;
+        tex.repeat.set(1, repeatY);
+        const restY = scrollable ? ((1 - repeatY) * 0.5) : 0;
+        const scrollEndY = scrollable ? (-(1 - repeatY) * 0.5) : 0;
+        tex.offset.set(0, restY);
+        tex.userData.scrollable = scrollable;
+        tex.userData.restY = restY;
+        tex.userData.scrollEndY = scrollEndY;
+        tex.needsUpdate = true;
+        return tex;
+    }
+    function makeImageTexture(img){
+        const targetAspect = CFG.screenAspect;
+        const canvasW = 1024;
+        const canvasH = Math.round(canvasW * (img.height / img.width));
+        const cv = document.createElement('canvas');
+        cv.width = canvasW; cv.height = canvasH;
+        cv.getContext('2d').drawImage(img, 0, 0, canvasW, canvasH);
+        const sliceHeightPx = canvasW / targetAspect;
+        let repeatY = sliceHeightPx / canvasH;
+        const scrollable = repeatY < 0.97;
+        repeatY = Math.min(repeatY, 1);
+        return finalizeTexture(new THREE.CanvasTexture(cv), repeatY, scrollable);
+    }
+    function makeFallbackGreenTexture(){
+        const cv = document.createElement('canvas');
+        cv.width = 512; cv.height = Math.round(512 / CFG.screenAspect);
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = CFG.fallbackColor;
+        ctx.fillRect(0, 0, cv.width, cv.height);
+        return finalizeTexture(new THREE.CanvasTexture(cv), 1, false);
+    }
+    function loadScreenTexture(index){
+        return new Promise(resolve => {
+            const path = CFG.photoPaths[index];
+            if (!path) { resolve(makeFallbackGreenTexture()); return; }
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(makeImageTexture(img));
+            img.onerror = () => { console.error('[IphoneStage] kon foto niet laden:', path); resolve(makeFallbackGreenTexture()); };
+            img.src = path;
+        });
+    }
+    function findContentMesh(root){
+        let found = null;
+        root.traverse(child => {
+            if (found || !child.isMesh || !child.material) return;
+            if (child.material.name === CFG.contentMaterialName) found = child;
+        });
+        if (!found) {
+            root.traverse(child => {
+                if (found || !child.isMesh) return;
+                const haystack = `${child.material?.name || ''} ${child.name || ''}`;
+                if (CFG.contentMaterialFallbackRegex.test(haystack)) found = child;
+            });
+        }
+        return found;
+    }
+    const rand = (min, max) => min + Math.random() * (max - min);
+    function lissajous3(t, freqs, phases){
+        return new THREE.Vector3(
+            Math.sin(t * freqs.x + phases.x),
+            Math.sin(t * freqs.y + phases.y),
+            Math.sin(t * freqs.z + phases.z)
+        );
+    }
+    const BASE_QUAT = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+    function onHoverEnter(i){
+        const item = items[i];
+        if (!window.gsap) return;
+        window.gsap.killTweensOf(item);
+        window.gsap.to(item, { hoverScale: CFG.hoverScaleMult, hoverPull: CFG.hoverPullAmount, calm: 1, duration: CFG.hoverTweenDuration, ease: 'power2.out' });
+        if (item.texture && item.texture.userData.scrollable) {
+            if (item.scrollTween) item.scrollTween.kill();
+            window.gsap.killTweensOf(item.texture.offset);
+            item.scrollTween = window.gsap.to(item.texture.offset, { y: item.texture.userData.scrollEndY, duration: CFG.autoScrollDuration, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.15 });
+        }
+    }
+    function onHoverLeave(i){
+        const item = items[i];
+        if (!window.gsap) return;
+        window.gsap.killTweensOf(item);
+        window.gsap.to(item, { hoverScale: 1, hoverPull: 0, calm: 0, duration: CFG.leaveTweenDuration, ease: 'power2.out' });
+        if (item.scrollTween) { item.scrollTween.kill(); item.scrollTween = null; }
+        if (item.texture) {
+            window.gsap.killTweensOf(item.texture.offset);
+            window.gsap.to(item.texture.offset, { y: item.texture.userData.restY, duration: 0.45, ease: 'power2.out' });
+        }
+    }
+
+    const items = [];
+    const pivots = [];
+    let homeGap = 0, maxReach = 0, MODEL_SCALE = 1, perItemRadius = 0;
+
+    setStageProgress(barEl, 5);
+    new GLTFLoader().load(
+        CFG.modelPath,
+        (gltf) => {
+            const rawBox = new THREE.Box3().setFromObject(gltf.scene);
+            const rawSize = rawBox.getSize(new THREE.Vector3());
+            const rawCenter = rawBox.getCenter(new THREE.Vector3());
+            const rawSphere = rawBox.getBoundingSphere(new THREE.Sphere());
+            MODEL_SCALE = CFG.targetLongestDim / Math.max(rawSize.x, rawSize.y, rawSize.z);
+            perItemRadius = rawSphere.radius * MODEL_SCALE;
+            maxReach = perItemRadius + CFG.localOrbitRadius + CFG.driftAmplitude;
+            homeGap = 2 * maxReach + CFG.homeSafetyMargin;
+
+            for (let i = 0; i < CFG.itemCount; i++) {
+                const clone = gltf.scene.clone(true);
+                clone.position.set(-rawCenter.x, -rawCenter.y, -rawCenter.z);
+                clone.traverse(c => { if (c.isMesh) c.userData.itemIndex = i; });
+                const tumbleGroup = new THREE.Group(); tumbleGroup.add(clone);
+                tumbleGroup.quaternion.copy(BASE_QUAT);
+                const swayGroup = new THREE.Group(); swayGroup.add(tumbleGroup);
+                const outerPivot = new THREE.Group(); outerPivot.add(swayGroup);
+                outerPivot.userData.itemIndex = i;
+                outerPivot.scale.setScalar(MODEL_SCALE);
+                const homeX = (i - (CFG.itemCount - 1) / 2) * homeGap;
+                scene.add(outerPivot);
+                pivots.push(outerPivot);
+                const contentMesh = findContentMesh(clone);
+                const item = {
+                    pivot: outerPivot, tumbleGroup, swayGroup,
+                    home: { x: homeX, y: 0, z: 0 },
+                    wobbleAmp:   { x: rand(...CFG.wobbleAmpRange),  y: rand(...CFG.wobbleAmpRange),  z: rand(...CFG.wobbleAmpRange) },
+                    wobbleFreq:  { x: rand(...CFG.wobbleFreqRange), y: rand(...CFG.wobbleFreqRange), z: rand(...CFG.wobbleFreqRange) },
+                    wobblePhase: { x: rand(0, Math.PI * 2), y: rand(0, Math.PI * 2), z: rand(0, Math.PI * 2) },
+                    orbitFreqs:  { x: rand(0.15, 0.3), y: rand(0.15, 0.3), z: rand(0.15, 0.3) },
+                    orbitPhases: { x: rand(0, Math.PI * 2), y: rand(0, Math.PI * 2), z: rand(0, Math.PI * 2) },
+                    driftFreqs:  { x: rand(0.05, 0.12), y: rand(0.05, 0.12), z: rand(0.05, 0.12) },
+                    driftPhases: { x: rand(0, Math.PI * 2), y: rand(0, Math.PI * 2), z: rand(0, Math.PI * 2) },
+                    calm: 0, hoverScale: 1, hoverPull: 0,
+                    swayCurrent: { x: 0, y: 0 }, swayTarget: { x: 0, y: 0 },
+                    texture: null, scrollTween: null,
+                };
+                items.push(item);
+                if (contentMesh) {
+                    loadScreenTexture(i).then(tex => {
+                        item.texture = tex;
+                        contentMesh.material = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false });
+                    });
+                }
+            }
+            computeFraming();
+            setStageProgress(barEl, 100);
+            hideStageLoading(loadingEl);
+        },
+        (xhr) => { if (xhr.total) setStageProgress(barEl, (xhr.loaded / xhr.total) * 90); },
+        (err) => { console.error('[IphoneStage] model kon niet laden:', err); showStageError(loadingEl, 'Kon model niet laden'); }
+    );
+
+    function computeFraming(){
+        // Houd rekening met de extra ruimte die een gehoverde telefoon
+        // inneemt (groter + dichter naar de camera getrokken) — anders
+        // valt hij bij het inzoomen buiten beeld.
+        const hoverPad = perItemRadius * (CFG.hoverScaleMult - 1) + CFG.hoverPullAmount;
+        const halfHeight = maxReach + hoverPad;
+        const halfWidth = ((CFG.itemCount - 1) / 2) * homeGap + maxReach + hoverPad;
+        const vFov = camera.fov * Math.PI / 180;
+        const distForHeight = halfHeight / Math.tan(vFov / 2);
+        const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+        const distForWidth = halfWidth / Math.tan(hFov / 2);
+        const dist = Math.max(distForHeight, distForWidth) * CFG.camDistMult;
+        camera.position.set(0, 0, dist);
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
+    }
+    
+    let resizeTimer = null;
+    function onResize(){
+        const w = container.clientWidth, h = container.clientHeight;
+        if (!w || !h) return;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isNarrowContainer(container) ? 1.5 : 2));
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        if (homeGap) computeFraming();
+    }
+    const ro = new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(onResize, 100); });
+    ro.observe(container);
+    onResize();
+
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2(-99, -99);
+    let hoverIndex = null, previousHoverIndex = null, grabbedIndex = null;
+    const grabStartNDC = new THREE.Vector2();
+    const maxSwayRad = THREE.MathUtils.degToRad(CFG.maxSwayAngleDeg);
+
+    function updatePointerNDC(ev){
+        const rect = canvas.getBoundingClientRect();
+        pointerNDC.x =  ((ev.clientX - rect.left) / rect.width)  * 2 - 1;
+        pointerNDC.y = -((ev.clientY - rect.top)  / rect.height) * 2 + 1;
+    }
+    canvas.addEventListener('pointermove', (ev) => {
+        updatePointerNDC(ev);
+        if (grabbedIndex !== null) {
+            const dx = pointerNDC.x - grabStartNDC.x;
+            const dy = pointerNDC.y - grabStartNDC.y;
+            const item = items[grabbedIndex];
+            item.swayTarget.x = THREE.MathUtils.clamp(dx * 1.6,  -maxSwayRad, maxSwayRad);
+            item.swayTarget.y = THREE.MathUtils.clamp(-dy * 1.6, -maxSwayRad, maxSwayRad);
+        }
+    });
+    canvas.addEventListener('pointerdown', (ev) => {
+        updatePointerNDC(ev);
+        raycaster.setFromCamera(pointerNDC, camera);
+        const hits = raycaster.intersectObjects(pivots, true);
+        if (hits.length && hits[0].object.userData.itemIndex !== undefined) {
+            grabbedIndex = hits[0].object.userData.itemIndex;
+            grabStartNDC.copy(pointerNDC);
+            canvas.classList.add('is-grabbing');
+        }
+    });
+    function releaseGrab(){
+        if (grabbedIndex !== null) { items[grabbedIndex].swayTarget.x = 0; items[grabbedIndex].swayTarget.y = 0; }
+        grabbedIndex = null;
+        canvas.classList.remove('is-grabbing');
+    }
+    window.addEventListener('pointerup', releaseGrab);
+    window.addEventListener('pointercancel', releaseGrab);
+
+    let lastTime = performance.now(), lastRaycastTime = 0, t = 0, active = false, rafId = null;
+    function animateLoop(){
+        rafId = requestAnimationFrame(animateLoop);
+        if (!active || stageContextLost) { lastTime = performance.now(); return; }
+        const now = performance.now();
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now; t += dt;
+
+        if (now - lastRaycastTime > CFG.raycastIntervalMs) {
+            lastRaycastTime = now;
+            raycaster.setFromCamera(pointerNDC, camera);
+            const hits = raycaster.intersectObjects(pivots, true);
+            hoverIndex = (hits.length && hits[0].object.userData.itemIndex !== undefined) ? hits[0].object.userData.itemIndex : null;
+            if (hoverIndex !== previousHoverIndex) {
+                if (previousHoverIndex !== null) onHoverLeave(previousHoverIndex);
+                if (hoverIndex !== null) onHoverEnter(hoverIndex);
+                previousHoverIndex = hoverIndex;
+            }
+        }
+        items.forEach((item, i) => {
+            const amp = 1 - item.calm;
+            const wobbleEuler = new THREE.Euler(
+                item.wobbleAmp.x * amp * Math.sin(t * item.wobbleFreq.x + item.wobblePhase.x),
+                item.wobbleAmp.y * amp * Math.sin(t * item.wobbleFreq.y + item.wobblePhase.y),
+                item.wobbleAmp.z * amp * Math.sin(t * item.wobbleFreq.z + item.wobblePhase.z)
+            );
+            const wobbleQuat = new THREE.Quaternion().setFromEuler(wobbleEuler);
+            item.tumbleGroup.quaternion.copy(BASE_QUAT).multiply(wobbleQuat);
+            const swayTargetX = (i === grabbedIndex) ? item.swayTarget.x : 0;
+            const swayTargetY = (i === grabbedIndex) ? item.swayTarget.y : 0;
+            item.swayCurrent.x = THREE.MathUtils.damp(item.swayCurrent.x, swayTargetX, CFG.dampingSway, dt);
+            item.swayCurrent.y = THREE.MathUtils.damp(item.swayCurrent.y, swayTargetY, CFG.dampingSway, dt);
+            item.swayGroup.rotation.set(item.swayCurrent.y, item.swayCurrent.x, 0);
+            const orbitVec = lissajous3(t, item.orbitFreqs, item.orbitPhases).multiplyScalar(CFG.localOrbitRadius).clampLength(0, CFG.localOrbitRadius);
+            const driftVec = lissajous3(t * 0.35, item.driftFreqs, item.driftPhases).multiplyScalar(CFG.driftAmplitude).clampLength(0, CFG.driftAmplitude);
+            item.pivot.position.set(
+                item.home.x + orbitVec.x + driftVec.x,
+                item.home.y + orbitVec.y + driftVec.y,
+                item.home.z + orbitVec.z + driftVec.z + item.hoverPull
+            );
+            item.pivot.scale.setScalar(MODEL_SCALE * item.hoverScale);
+        });
+        renderer.render(scene, camera);
+    }
+    rafId = requestAnimationFrame(animateLoop);
+
+    return { setActive(v){ active = v; } };
+}
+
+/* ════════════════════════════════════════════════════════════
+   STAGE 3 — Posters — Magazine showcase
+════════════════════════════════════════════════════════════ */
+function initMagazineStage(canvas, container, loadingEl, barEl){
+    const CFG = {
+        MODEL_PATH: 'open_book.glb',
+        PHOTO_PATHS: ['Images/foto1.png', 'Images/foto2.png'],
+        FLIP_SCREEN_TEXTURE_V: true,
+        SCALE: 1.0, CAM_FOV: 40, CAM_DIST_MULT: 0.7,
+        LOCAL_ORBIT: [
+            { radius: 0.6,  speed:  0.02,  phase: 0.0 },
+            { radius: 0.75, speed: -0.016, phase: 2.3 },
+        ],
+        HOME_GAP_BUFFER: 6,
+        TUMBLE_SPEED: [
+            { x:  0.008, y:  0.006, z: -0.004 },
+            { x: -0.005, y:  0.007, z:  0.005 },
+        ],
+        START_ROT: [
+            { x: 1.4, y:  0.3, z: -0.1 },
+            { x: 1.7, y: -0.3, z:  0.1 },
+        ],
+        TARGET_HOVER_ROT: [
+            { x: 1.57, y:  0.18, z: 0.0 },
+            { x: 1.57, y: -0.18, z: 0.0 },
+        ],
+        DRIFT_AMP: 0.2, DRIFT_SPEED: 0.07, FLOAT_AMP: 0.3, FLOAT_SPEED: 0.12,
+        HOVER_SCALE_MULT: 1.25, HOVER_MOVE_DIST: 3, HOVER_DAMPING: 4.5, HOVER_ROT_DAMPING: 2.8,
+        SWAY_PIXELS_TO_WORLD: 0.035, SWAY_MAX: 5, SWAY_DAMPING: 5,
+        SCREEN_ASPECT: 1.36, SCROLL_DURATION: 12, SCROLL_PAUSE: 1.5, EXPOSURE: 1.15,
+    };
+
+    // FIX (kritiek): zie toelichting bij de MacBook-stage hierboven.
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    } catch (err) {
+        console.error('[MagazineStage] WebGL niet beschikbaar:', err);
+        showStageError(loadingEl, '3D-preview niet beschikbaar in deze browser');
+        return { setActive(){} };
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isNarrowContainer(container) ? 1.5 : 2));
+    renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = CFG.EXPOSURE;
+    renderer.outputColorSpace    = THREE.SRGBColorSpace;
+
+    // FIX (bug 4 — glitches/zwarte achtergrond): zie toelichting bij de
+    // MacBook-stage hierboven — dezelfde context-verlies-bescherming.
+    let stageContextLost = false;
+    renderer.domElement.addEventListener('webglcontextlost', function(e){
+        e.preventDefault();
+        stageContextLost = true;
+        console.warn('[MagazineStage] WebGL-context verloren — probeer te herstellen…');
+    }, false);
+    renderer.domElement.addEventListener('webglcontextrestored', function(){
+        stageContextLost = false;
+        onResize();
+    }, false);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(CFG.CAM_FOV, 1, 0.1, 5000);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // FIX (bug 4 — GPU-geheugen): PMREMGenerator houdt interne framebuffers
+    // vast die niet meer nodig zijn zodra de omgevingstextuur gebakken is.
+    // Nooit disposen liet dit per 3D-stage GPU-geheugen lekken, wat bijdraagt
+    // aan het context-verlies-probleem (bug 4).
+    pmrem.dispose();
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const key  = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(14, 28, 22); scene.add(key);
+    const fill = new THREE.DirectionalLight(0xfbfbff, 1.2); fill.position.set(-16, 10, 18); scene.add(fill);
+    const rim  = new THREE.DirectionalLight(0xffffff, 0.8); rim.position.set(0, 14, -28); scene.add(rim);
+
+    function ensureUVs(mesh){
+        if (!mesh || !mesh.geometry) return;
+        const geo = mesh.geometry;
+        if (geo.attributes.uv) return;
+        const pos = geo.attributes.position;
+        geo.computeBoundingBox();
+        const bb = geo.boundingBox;
+        const sizeX = (bb.max.x - bb.min.x) || 1;
+        const sizeZ = (bb.max.z - bb.min.z) || 1;
+        const uvArray = new Float32Array(pos.count * 2);
+        for (let i = 0; i < pos.count; i++) {
+            const u = (pos.getX(i) - bb.min.x) / sizeX;
+            const v = (bb.max.z - pos.getZ(i)) / sizeZ;
+            uvArray[i * 2] = u; uvArray[i * 2 + 1] = v;
+        }
+        geo.setAttribute('uv', new THREE.BufferAttribute(uvArray, 2));
+    }
+
+    function findScreenTarget(modelScene){
+        let targetMesh = null, targetMatIndex = -1;
+        const allMeshes = [];
+        modelScene.traverse(node => {
+            if (!node.isMesh) return;
+            allMeshes.push(node);
+            const nodeName = node.name.toLowerCase();
+            if (Array.isArray(node.material)) {
+                node.material.forEach((mat, idx) => {
+                    const matName = (mat.name || '').toLowerCase();
+                    if (matName.includes('page') || matName.includes('paper') || matName.includes('inside') || matName.includes('peeji') || nodeName.includes('page')) {
+                        targetMesh = node; targetMatIndex = idx;
+                    }
+                });
+            } else {
+                const matName = (node.material?.name || '').toLowerCase();
+                if (nodeName.includes('page') || nodeName.includes('paper') || matName.includes('page') || matName.includes('paper') || matName.includes('inside') || matName.includes('peeji')) {
+                    targetMesh = node; targetMatIndex = -1;
+                }
+            }
+        });
+        if (!targetMesh && allMeshes.length > 1) {
+            let simplest = allMeshes[0];
+            allMeshes.forEach(m => {
+                const count = m.geometry?.attributes?.position?.count ?? Infinity;
+                const simplestCount = simplest.geometry?.attributes?.position?.count ?? Infinity;
+                if (count < simplestCount) simplest = m;
+            });
+            targetMesh = simplest;
+            targetMatIndex = Array.isArray(simplest.material) ? 1 : -1;
+        }
+        if (!targetMesh && allMeshes.length === 1) { targetMesh = allMeshes[0]; targetMatIndex = -1; }
+        ensureUVs(targetMesh);
+        return { mesh: targetMesh, matIndex: targetMatIndex };
+    }
+
+    function applyScrollingTexture(target, photoPath){
+        new THREE.TextureLoader().load(
+            photoPath,
+            (tex) => {
+                tex.flipY = CFG.FLIP_SCREEN_TEXTURE_V;
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+                const img = tex.image;
+                const imgAsp = img.naturalWidth / img.naturalHeight;
+                let repeatY = imgAsp / CFG.SCREEN_ASPECT;
+                const scrollable = repeatY < 0.98;
+                repeatY = Math.min(repeatY, 1);
+                tex.repeat.set(1, repeatY);
+                const topOffsetY = scrollable ? (1 - repeatY) : 0;
+                tex.offset.set(0, topOffsetY);
+                tex.needsUpdate = true;
+                const newMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: 0.1, side: THREE.DoubleSide });
+                if (target.matIndex !== -1) {
+                    const mats = [...target.mesh.material];
+                    mats[target.matIndex] = newMat;
+                    target.mesh.material = mats;
+                } else {
+                    target.mesh.material = newMat;
+                }
+                if (scrollable && window.gsap) {
+                    window.gsap.to(tex.offset, { y: 0, duration: CFG.SCROLL_DURATION, delay: CFG.SCROLL_PAUSE, ease: 'sine.inOut', repeat: -1, yoyo: true, repeatDelay: CFG.SCROLL_PAUSE });
+                }
+            },
+            undefined,
+            (err) => {
+                const errorMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.5, side: THREE.DoubleSide });
+                if (target.matIndex !== -1) {
+                    const mats = [...target.mesh.material];
+                    mats[target.matIndex] = errorMat;
+                    target.mesh.material = mats;
+                } else {
+                    target.mesh.material = errorMat;
+                }
+                console.error('[MagazineStage] foto kon niet laden:', photoPath, err);
+            }
+        );
+    }
+
+    let rawCenter = new THREE.Vector3();
+    const instances = [];
+
+    function spawnMagazine(gltfScene, homeX, photoPath, idx){
+        const mag = deepClone(gltfScene);
+        mag.position.set(-rawCenter.x, -rawCenter.y, -rawCenter.z);
+        mag.traverse(n => { if (n.isMesh) n.userData.magIndex = idx; });
+        const pivot = new THREE.Group();
+        pivot.add(mag);
+        pivot.scale.setScalar(CFG.SCALE);
+        scene.add(pivot);
+        const targetInfo = findScreenTarget(mag);
+        if (targetInfo.mesh) applyScrollingTexture(targetInfo, photoPath);
+        const r = CFG.START_ROT[idx];
+        const o = CFG.LOCAL_ORBIT[idx];
+        instances.push({
+            pivot, index: idx,
+            home: { x: homeX, z: 0 },
+            rot: { x: r.x, y: r.y, z: r.z },
+            tumbleSpeed: CFG.TUMBLE_SPEED[idx],
+            orbit: o,
+            floatPhase: idx * 2.4,
+            driftPhaseX: idx * 1.8 + 0.7,
+            driftPhaseZ: idx * 3.1 + 1.4,
+            scaleMult: 1, closeAmount: 0,
+            sway: new THREE.Vector3(), swayTarget: new THREE.Vector3(),
+        });
+    }
+
+    let perMagRadius = 10, maxLocalOrbit = 5, homeGap = 30;
+    function computeHomeGap(){
+        const maxReach = perMagRadius + maxLocalOrbit + CFG.DRIFT_AMP;
+        // x0.65: iets dichter bij elkaar, leesbaarder en geen clipping bij hover-zoom
+        homeGap = (2 * maxReach + CFG.HOME_GAP_BUFFER) * 0.65;
+    }
+    function fitCameraFixed(){
+        const vFov = CFG.CAM_FOV * Math.PI / 180;
+        const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+        const maxReach = perMagRadius + maxLocalOrbit + CFG.DRIFT_AMP;
+        const halfSpan = (homeGap / 2) + maxReach;
+        const hoverPad = perMagRadius * (CFG.HOVER_SCALE_MULT - 1) + CFG.HOVER_MOVE_DIST * 0.5;
+        const distForHeight = (perMagRadius + CFG.FLOAT_AMP + hoverPad) / Math.tan(vFov / 2);
+        const distForWidth  = (halfSpan + hoverPad) / Math.tan(hFov / 2);
+        const dist = Math.max(distForHeight, distForWidth) * CFG.CAM_DIST_MULT;
+        camera.position.set(0, perMagRadius * 0.12, dist);
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
+    }
+
+    setStageProgress(barEl, 5);
+    new GLTFLoader().load(
+        CFG.MODEL_PATH,
+        (gltf) => {
+            setStageProgress(barEl, 80);
+            const box = new THREE.Box3().setFromObject(gltf.scene);
+            rawCenter = box.getCenter(new THREE.Vector3());
+            perMagRadius = box.getBoundingSphere(new THREE.Sphere()).radius * CFG.SCALE;
+            maxLocalOrbit = Math.max(...CFG.LOCAL_ORBIT.map(o => o.radius));
+            computeHomeGap();
+            spawnMagazine(gltf.scene, -(homeGap / 2), CFG.PHOTO_PATHS[0], 0);
+            spawnMagazine(gltf.scene,  (homeGap / 2), CFG.PHOTO_PATHS[1], 1);
+            onResize();
+            setStageProgress(barEl, 100);
+            hideStageLoading(loadingEl);
+        },
+        (xhr) => { if (xhr.total) setStageProgress(barEl, (xhr.loaded / xhr.total) * 75); },
+        (err) => { console.error('[MagazineStage] model kon niet laden:', err); showStageError(loadingEl, 'Kon model niet laden'); }
+    );
+
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2(-10, -10);
+    let hoveredIndex = -1, grabbedIndex = -1, grabStartX = 0, grabStartY = 0;
+
+    function magIndexUnderPointer(){
+        if (!instances.length) return -1;
+        raycaster.setFromCamera(pointerNDC, camera);
+        const hits = raycaster.intersectObjects(instances.map(i => i.pivot), true);
+        return hits.length ? (hits[0].object.userData.magIndex ?? -1) : -1;
+    }
+    function setNDCFromEvent(e){
+        const r = canvas.getBoundingClientRect();
+        pointerNDC.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
+        pointerNDC.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
+    }
+    let lastRaycastT = 0;
+    canvas.addEventListener('pointermove', (e) => {
+        setNDCFromEvent(e);
+        const now = performance.now();
+        if (now - lastRaycastT < 40) return;
+        lastRaycastT = now;
+        hoveredIndex = magIndexUnderPointer();
+    });
+    canvas.addEventListener('pointerleave', () => { pointerNDC.set(-10, -10); hoveredIndex = -1; });
+    canvas.addEventListener('pointerdown', (e) => {
+        setNDCFromEvent(e);
+        hoveredIndex = magIndexUnderPointer();
+        if (hoveredIndex !== -1) {
+            grabbedIndex = hoveredIndex;
+            grabStartX = e.clientX; grabStartY = e.clientY;
+            canvas.classList.add('is-grabbing');
+        }
+    });
+    window.addEventListener('pointermove', (e) => {
+        if (grabbedIndex === -1) return;
+        const dx = e.clientX - grabStartX, dy = e.clientY - grabStartY;
+        const inst = instances[grabbedIndex];
+        inst.swayTarget.x = clamp(dx * CFG.SWAY_PIXELS_TO_WORLD,  -CFG.SWAY_MAX, CFG.SWAY_MAX);
+        inst.swayTarget.y = clamp(-dy * CFG.SWAY_PIXELS_TO_WORLD, -CFG.SWAY_MAX, CFG.SWAY_MAX);
+    });
+    function releaseGrab(){
+        if (grabbedIndex !== -1) instances[grabbedIndex].swayTarget.set(0, 0, 0);
+        grabbedIndex = -1;
+        canvas.classList.remove('is-grabbing');
+    }
+    window.addEventListener('pointerup', releaseGrab);
+    window.addEventListener('pointercancel', releaseGrab);
+
+    let clock = 0, active = false, rafId = null;
+    function frame(){
+        rafId = requestAnimationFrame(frame);
+        if (!active || stageContextLost) return;
+        const dt = 1 / 60; clock += dt;
+        instances.forEach((inst, i) => {
+            const isGrabbed = (grabbedIndex === i);
+            const isActive   = isGrabbed || (hoveredIndex === i);
+            if (isActive) {
+                const targetRot = CFG.TARGET_HOVER_ROT[inst.index];
+                inst.rot.x = damp(inst.rot.x, targetRot.x, CFG.HOVER_ROT_DAMPING, dt);
+                inst.rot.y = damp(inst.rot.y, targetRot.y, CFG.HOVER_ROT_DAMPING, dt);
+                inst.rot.z = damp(inst.rot.z, targetRot.z, CFG.HOVER_ROT_DAMPING, dt);
+            } else {
+                inst.rot.x += inst.tumbleSpeed.x * dt;
+                inst.rot.y += inst.tumbleSpeed.y * dt;
+                inst.rot.z += inst.tumbleSpeed.z * dt;
+            }
+            inst.pivot.rotation.set(inst.rot.x, inst.rot.y, inst.rot.z);
+            const targetScale = isActive ? CFG.HOVER_SCALE_MULT : 1;
+            inst.scaleMult = damp(inst.scaleMult, targetScale, CFG.HOVER_DAMPING, dt);
+            inst.pivot.scale.setScalar(CFG.SCALE * inst.scaleMult);
+            const orbitAngle = clock * inst.orbit.speed + inst.orbit.phase;
+            const orbitX = Math.cos(orbitAngle) * inst.orbit.radius;
+            const orbitZ = Math.sin(orbitAngle) * inst.orbit.radius;
+            const bobY   = Math.sin(clock * CFG.FLOAT_SPEED + inst.floatPhase) * CFG.FLOAT_AMP;
+            const driftX = Math.sin(clock * CFG.DRIFT_SPEED + inst.driftPhaseX) * CFG.DRIFT_AMP;
+            const driftZ = Math.cos(clock * CFG.DRIFT_SPEED + inst.driftPhaseZ) * CFG.DRIFT_AMP;
+            const anchor = new THREE.Vector3(inst.home.x + orbitX + driftX, bobY, inst.home.z + orbitZ + driftZ);
+            const targetClose = isActive ? CFG.HOVER_MOVE_DIST : 0;
+            inst.closeAmount = damp(inst.closeAmount, targetClose, CFG.HOVER_DAMPING, dt);
+            if (inst.closeAmount > 0.001) {
+                const dir = camera.position.clone().sub(anchor).normalize();
+                anchor.addScaledVector(dir, inst.closeAmount);
+            }
+            inst.sway.x = damp(inst.sway.x, inst.swayTarget.x, CFG.SWAY_DAMPING, dt);
+            inst.sway.y = damp(inst.sway.y, inst.swayTarget.y, CFG.SWAY_DAMPING, dt);
+            anchor.add(inst.sway);
+            inst.pivot.position.copy(anchor);
+        });
+        renderer.render(scene, camera);
+    }
+    rafId = requestAnimationFrame(frame);
+
+    let resizeTimer = null;
+    function onResize(){
+        const w = container.clientWidth, h = container.clientHeight;
+        if (!w || !h) return;
+        camera.aspect = w / h;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isNarrowContainer(container) ? 1.5 : 2));
+        renderer.setSize(w, h, false);
+        if (homeGap) fitCameraFixed();
+    }
+    const ro = new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(onResize, 100); });
+    ro.observe(container);
+    onResize();
+
+    return { setActive(v){ active = v; } };
+}
+
+/* ════════════════════════════════════════════════════════════
+   ORCHESTRATIE — lazy-init + activeren per project
+════════════════════════════════════════════════════════════ */
+const stageDefs = [
+    { canvasId: 'canvas-vcs',     containerId: 'stage-vcs',     loadingId: 'loading-vcs',     barId: 'bar-vcs',     init: initMacbookStage  },
+    { canvasId: 'canvas-proef',   containerId: 'stage-proef',   loadingId: 'loading-proef',   barId: 'bar-proef',   init: initIphoneStage   },
+    { canvasId: 'canvas-posters', containerId: 'stage-posters', loadingId: 'loading-posters', barId: 'bar-posters', init: initMagazineStage },
+];
+const stageControllers = [null, null, null];
+
+function ensureStageInit(index){
+    if (stageControllers[index]) return;
+    const def = stageDefs[index];
+    const canvas    = document.getElementById(def.canvasId);
+    const container = document.getElementById(def.containerId);
+    const loadingEl = document.getElementById(def.loadingId);
+    const barEl     = document.getElementById(def.barId);
+    if (!canvas || !container) return;
+    // FIX (kritiek): vang onverwachte fouten hier ook op, zodat één kapotte
+    // 3D-stage nooit het wisselen tussen projecten of de rest van de
+    // pagina kan blokkeren.
+    try {
+        stageControllers[index] = def.init(canvas, container, loadingEl, barEl);
+    } catch (err) {
+        console.error('[ensureStageInit] stage', index, 'kon niet initialiseren:', err);
+        showStageError(loadingEl, '3D-preview niet beschikbaar');
+        stageControllers[index] = { setActive(){} };
+    }
+}
+
+function update3DStage(activeIndex){
+    ensureStageInit(activeIndex);
+    document.querySelectorAll('.stage-instance').forEach(el => {
+        const i = parseInt(el.getAttribute('data-stage-index'), 10);
+        el.classList.toggle('is-active', i === activeIndex);
+    });
+    stageControllers.forEach((ctrl, i) => { if (ctrl) ctrl.setActive(i === activeIndex); });
+}
+window.update3DStage = update3DStage;
+window.pause3DStages = function(){
+    stageControllers.forEach(ctrl => { if (ctrl) ctrl.setActive(false); });
+};
+
+</script>
+</body>
+</html>
