@@ -1438,7 +1438,21 @@ function initKernwaarden() {
     // prettigst voelt.
     sticky.addEventListener('click', function(e){
         if (e.target.closest('a, button')) return;
-        smoothScrollToY(window.scrollY + 1400, 700);
+        // FIX: een vaste +1400px-sprong was groter dan de scrollafstand
+        // tussen twee kaart-exits (~570px), waardoor één klik soms twee
+        // kaarten tegelijk liet wegvliegen. We springen nu naar het
+        // eerstvolgende GSAP-label in de tijdlijn, zodat een klik altijd
+        // precies één stap (één kaart) verder gaat.
+        const st = tl.scrollTrigger;
+        if (!st) { smoothScrollToY(window.scrollY + 1400, 700); return; }
+        const dur = tl.duration();
+        const currentT = dur * st.progress;
+        const nextLabelT = Object.values(tl.labels)
+            .filter(t => t > currentT + 0.001)
+            .sort((a, b) => a - b)[0];
+        const targetT = nextLabelT !== undefined ? nextLabelT : dur;
+        const targetY = st.start + (st.end - st.start) * (targetT / dur);
+        smoothScrollToY(targetY + 2, 700);
     });
 
     const stackRotations = [-3, 4, -2, 2];
@@ -1478,14 +1492,22 @@ function initKernwaarden() {
 
     // Rook verschijnt als alle kaarten er zijn — GEEN dimming van achtergrond
     tl.to('.kw-smoke-canvas', { opacity: 0.85, duration: 0.7 }, '-=0.2');
+    tl.addLabel('cardsIn');
 
     tl.to({}, { duration: 1.4 });
 
     // STAP 3 — kaarten vliegen omhoog weg
+    // Elke kaart krijgt een eigen label vlak na zijn exit-tween, zodat de
+    // klik-to-advance hieronder altijd op precies één losgekomen kaart kan
+    // landen in plaats van per ongeluk twee exits binnen één klik te vatten.
     tl.to('.kw-card:nth-child(1)', { y: '-130vh', rotate: -15, duration: 0.85, ease: 'power2.in' });
+    tl.addLabel('card1Gone');
     tl.to('.kw-card:nth-child(2)', { y: '-130vh', rotate: 12,  duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.addLabel('card2Gone');
     tl.to('.kw-card:nth-child(3)', { y: '-130vh', rotate: -10, duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.addLabel('card3Gone');
     tl.to('.kw-card:nth-child(4)', { y: '-130vh', rotate: 8,   duration: 0.85, ease: 'power2.in' }, '+=0.28');
+    tl.addLabel('card4Gone');
     tl.to('.kw-intro-text', { opacity: 0, y: -36, duration: 0.5 }, '-=0.7');
 
 
